@@ -1,0 +1,12 @@
+# Core data + numerics (subset of engine's requirements; install engine as dev
+# dep via `pip install -e ../backtesting-engine-2.0` for full transitive deps)
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Data fetchers
+yfinance>=0.2.40
+# MetaTrader5 is Windows-only; install manually if using scripts/mt5_fetch.py:
+#   pip install MetaTrader5

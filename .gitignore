@@ -1,0 +1,43 @@
+# Virtualenvs
+venv/
+.venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Local data (too big, reproducible via fetch scripts)
+ohlc_data/*.csv
+ohlc_data/rates/*.csv
+tick_data/
+
+# Local config
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Exports / artifacts
+exports/
+*.db
+*.sqlite
+*.sqlite3
+
+# Notebooks (if we start using them)
+.ipynb_checkpoints/
+
+/docs/vps_connect.md
+
+# Opinionated per-collaborator working notes
+CLAUDE.md
