@@ -60,7 +60,7 @@ def inject_to_datalake(df: pd.DataFrame, instrument: str, timeframe: str) -> int
         raise RuntimeError("DATALAKE_API_KEY is not set; cannot inject to datalake")
 
     url = f"{base_url.rstrip('/')}{ingest_path if ingest_path.startswith('/') else '/' + ingest_path}"
-    headers = {"Authorization": f"Bearer {api_key}"}
+    headers = {"X-API-Key": api_key}
 
     buf = io.StringIO()
     df.to_csv(buf, index=False)

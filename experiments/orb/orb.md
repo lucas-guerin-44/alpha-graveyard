@@ -1,6 +1,6 @@
-# Opening Range Breakout — cross-instrument (SPX500 / NDX100 / GER40 / UK100 / FRA40)
+# Opening Range Breakout — cross-instrument (SPX500 / NDX100 / GER40 / UK100 / EUSTX50 + 5 data-blocked)
 
-**Status**: Phase 2 + refinement complete across five US/EU cash-index CFDs on M5, 2019-2026.
+**Status**: Phase 2 + refinement complete across ten cash-index CFDs on M5, 2019-2026. Five instruments tradeable in the simulator; five blocked by broker data coverage at the cash-open hour.
 
 **Verdict**:
 
@@ -10,7 +10,12 @@
 | NDX100 | MARGINAL (do not deploy) | Baseline EOD | +0.03 | +0.19 | −22% |
 | **GER40** | **PASS — deploy** | **T+180 LONG-only** | **+0.76** | **+0.93** | **−7.8%** |
 | UK100 | REJECT | — | −0.54 | −0.84 | −32% |
-| FRA40 | INCONCLUSIVE | — | data coverage issue | — | — |
+| EUSTX50 | REJECT | — | −1.54 | −1.67 | −63% |
+| FRA40 | DATA-BLOCKED | — | no cash-open bars | — | — |
+| JPN225 | DATA-BLOCKED | — | ~23% cash-open coverage | — | — |
+| SWI20 | DATA-BLOCKED | — | 0 trades | — | — |
+| ITA40 | DATA-BLOCKED | — | 0 trades | — | — |
+| ASX200 | DATA-BLOCKED | — | 0 trades | — | — |
 
 **Deployment recommendation**: GER40 T+180min LONG-only. Expected live Sharpe after 50-70% haircut: **+0.23 to +0.46**. Trade cadence 3.8/week. Fade-gap +1.04 confirms real directional signal; long/short split shows the edge is concentrated on the long side (shorts are a drag in 3 of 3 regime windows except 2021-2022).
 
@@ -300,30 +305,93 @@ M5, RTH 08:00-16:30 Europe/London. Tested to probe the hypothesis "ORB works on 
 
 **3/3 regimes negative.** Probable driver: FTSE 100 is commodities-heavy with wide constituent rotation and less overnight-information accumulation than DAX. Overnight news prices via ADR trading (post-London close), so no coherent opening impulse. **Falsifies "European generic" hypothesis.** REJECT.
 
-### FRA40 — INCONCLUSIVE (data coverage)
+### Data-blocked instruments (FRA40 / JPN225 / SWI20 / ITA40 / ASX200)
 
-| Metric | Value |
-|---|---|
-| Trades (2019-2026) | 50 (0.13/wk) |
-| Post-2020 trades | 0 |
+Five intended test instruments could not be run to conclusion because the MT5 broker's CFD data does not cover the actual cash-open hour. Each case has the same structural pattern: no bars (or heavily fractional coverage) during the 5-30 minutes when the underlying cash index runs its opening auction.
 
-This broker's FRA40 CFD starts streaming at ~09:00 UTC regardless of DST (= 10:00-11:00 Berlin), 1-2h past the intended 09:00 Berlin OR window. Most days have zero OR data.
+| Symbol | Cash session (local) | Broker first reliable bar | Cash-open coverage | Simulator result |
+|---|---|---|---|---|
+| FRA40 (CAC 40) | 09:00-17:30 Paris | ~10:00-11:00 Berlin | ~0% at 09:00 | 50 trades / 7y, 0 post-2020 |
+| JPN225 (Nikkei) | 09:00-15:00 Tokyo | 10:00 Tokyo | ~23% at 09:00-09:55 | not run |
+| SWI20 (SMI) | 09:00-17:30 Zurich | 10:00 Zurich | 0% at 09:00 | **0 trades / 4.1y** |
+| ITA40 (FTSE MIB) | 09:00-17:30 Rome | 10:00 Rome | 0% at 09:00; ~26% at peak | **0 trades / 1.6y** (session-filtered data starts 2024-08) |
+| ASX200 | 10:00-16:00 Sydney | 12:00-13:00 Sydney | 2 bars at 10:00 over 1,875 days | **0 trades / 7.3y** |
 
-Cash CAC 40 opens at 09:00 Paris (= 09:00 Berlin), but this broker treats FRA40 as a generic European tracker on a UTC-fixed server-time schedule. Retest would need a broker that mirrors Paris cash hours or a fixed-UTC session mode. Low priority — UK100 already falsified the "European generic" hypothesis.
+**Pattern**: the broker has clean cash-open coverage for instruments derived from fully-liquid 24h futures (SPX/NDX from ES/NQ, GER40 from FDAX/FESX, EUSTX50 from FESX) and for the LSE-listed UK100. For regional cash-equity indices without a dominant 24h futures hedge (Swiss SMI, Italian FTSE MIB, Australian SPI is liquid but broker evidently uses cash feed, Nikkei on the non-SGX side, CAC 40), the broker either starts streaming after the cash open completes or serves fractional coverage.
+
+The ORB thesis depends on constructing an accurate opening range from the true 09:00 (or local equivalent) 30-minute window. With ~0% coverage there, the `or_mask = day_mod < or_end` slice produces an empty window on most/all days and the simulator cleanly skips the day — this is why the 0-trade result is the honest answer, not a bug.
+
+**Retest paths** (not run in this session, deferred):
+1. Alternative broker / data provider. Polygon.io, databento, or Eurex/SGX-direct for futures give clean open coverage but cost money and take integration work.
+2. OSE Nikkei 225 mini futures (via SGX or OSE direct) — native 08:45 JST open, no cash-index handoff.
+3. Shifting the OR window to the first bar the broker actually streams (e.g. 10:00 or 11:00 local). This tests a different mechanism — late-morning breakout continuation — not the opening-auction thesis. Unlikely to be informative and risks anchoring on broker-artifact timing.
+
+**Implication for thesis breadth**: the single-venue-concentrated-auction hypothesis can currently only be tested on GER40. Every other instrument in the universe either refutes it (SPX/NDX/UK100/EUSTX50 — all testable, all fail for microstructure reasons documented below) or is blocked by data. GER40 alone is a sample of one for the "ORB works" side of the ledger — statistical power is weak and a proper confirmation requires the JPN225 or another single-venue-auction market to be unblocked.
+
+### EUSTX50 — REJECT
+
+M5, RTH 09:00-17:30 Europe/Berlin, 186,251 session-filtered bars, 1,854 trading days. Added to test whether GER40's edge generalizes to a *multi-venue* European blue-chip basket.
+
+**Baseline (OR=30min, EOD exit, cost=1pt)**:
+
+| Metric | Value | vs threshold |
+|---|---|---|
+| Sharpe | −1.54 | FAIL |
+| Max DD | −63.0% | FAIL |
+| Trades | 2,742 (7.2/wk) | PASS |
+| WR / PF | 11.9% / 0.73 | FAIL |
+
+**Regime breakdown**: 2019-2020 −1.69, 2021-2022 −1.37, 2023-2026 holdout −1.67. **3/3 regime fail.**
+
+**Symmetric R:R fade-gap diagnostic** (the GER40-refinement-battery equivalent):
+
+| R:R | Baseline Sh | Fade Sh | Gap |
+|---|---|---|---|
+| 1:1 | −2.20 | −2.82 | +0.62 |
+| 1:1.5 | −2.05 | −2.43 | +0.37 |
+| 1:2 | −1.70 | −2.05 | +0.35 |
+| 1:3 | −1.74 | −0.95 | **−0.78** (fade wins) |
+
+Positive fade-gap at 1:1 to 1:2 means the direction has a small continuation bias at short R:R, but **both baseline and fade are deeply negative** — not a tradeable edge in either direction. At 1:3 fade actually wins (mean-reversion bias at longer targets).
+
+**TOD exit sweep**: T+60 −1.84, T+120 −1.70, T+180 −1.45, T+240 −1.40, EOD −1.54. No TOD that unlocked GER40 helps here. Best variant (T+240) still at −1.40.
+
+**Cost insensitivity of failure**: even at 0.5pt RT cost, Sharpe is −0.99. This is not a cost problem — the mechanism simply doesn't produce directional continuation on EUSTX50.
+
+**OR-width filter**: gets to Sharpe +0.14 at 1.0% filter but with only **15 trades over 7 years** — below the ≥200 Phase 2 floor. Not a strategy, just the law of small numbers.
+
+**Mechanistic interpretation — why EUSTX50 fails where GER40 succeeds**:
+
+Eurostoxx 50 constituents span four primary venues: Xetra (DE, ~40% weight), Euronext Paris (FR, ~35%), Euronext Amsterdam (NL), Borsa Italiana (IT). Each venue has its own opening auction at its own local time (all 09:00 local, which aligns to 09:00 Berlin for the Eurozone, but the *call-auction mechanics* and *settlement timing* differ by 5-10 minutes).
+
+Further, most broker EUSTX50 CFDs price off Eurex FESX futures, which open at 08:00 Berlin — **one hour before the cash constituents**. The CFD has been moving on futures flow for 60 minutes before the 09:00 "ORB open" in the simulator, so the 09:00-09:30 opening range is not a true information-resolution window; it's a mid-flow continuation of the pre-market futures trajectory.
+
+This **sharpens** the GER40 mechanistic claim. The edge is not "European cash-index opening auction" generically; it is specifically "**single-venue concentrated auction at the exact RTH open, for a basket whose constituents all trade on that one venue**". DAX = pure Xetra (all 40 names, one venue, one auction, one minute). Eurostoxx 50 = smear across 4 venues with an hour of futures-led pre-positioning.
+
+**3 of 4 Phase 2 kill-criteria fail (plus 3/3 regime fail + cost-insensitive). REJECT, tombstone.**
 
 ---
 
 ## Cross-instrument mechanistic interpretation
 
-| Instrument | Opening-impulse edge? | Post-breakout profile | Notes |
-|---|---|---|---|
-| SPX500 | None | Bars oscillate, hit stops both sides | No directional signal |
-| NDX100 | Weak | Full-session slow drift; tight exits revert | Needs long hold; still too weak |
-| **GER40** | **Strong** | **3h concentrated continuation, then noise** | Xetra morning-auction delivers clean resolution |
-| UK100 | None | Commodity-sector rotation dominates | Overnight info not concentrated at LSE open |
-| FRA40 | Untested | — | Data coverage issue |
+| Instrument | Venue structure | Opening-impulse edge? | Post-breakout profile | Notes |
+|---|---|---|---|---|
+| SPX500 | Multi-venue (NYSE/Nasdaq, diffuse open) | None | Bars oscillate, hit stops both sides | No directional signal |
+| NDX100 | Multi-venue (Nasdaq-listed, diffuse open) | Weak | Full-session slow drift; tight exits revert | Needs long hold; still too weak |
+| **GER40** | **Single-venue (Xetra)** | **Strong** | **3h concentrated continuation, then noise** | Xetra morning-auction delivers clean resolution |
+| UK100 | Single-venue (LSE) | None | Commodity-sector rotation dominates | Overnight info prices via ADRs post-close, not at LSE open |
+| EUSTX50 | Multi-venue (Xetra+Euronext+BIT), futures-led | None (slight mean-revert) | Scattered | Pre-market futures moves 60min before cash open; smeared auction |
+| FRA40 | — | Untested | — | Data coverage issue |
+| JPN225 | — | Untested | — | Data coverage issue (09:00 JST open broken) |
 
-**Key insight**: the "ORB mechanism" is not universal across index futures. It requires a market structure where overnight information concentrates into the opening auction (Xetra on DAX does this cleanly; cash-equity NYSE/Nasdaq does not; LSE does not). Refinement paths are instrument-specific — T+180 that unlocked GER40 hurts NDX100.
+**Key insight (refined after EUSTX50)**: the "ORB mechanism" requires a specific market microstructure combination:
+1. **Single-venue concentrated opening auction** for all constituents simultaneously. (DAX/Xetra ✓, Eurostoxx 50 ✗ — spans 4 Eurozone venues; SPX/NDX ✗ — NYSE/Nasdaq diffuse open; LSE ✓ structurally but overnight info arrives via ADR trading, not concentrated at open).
+2. **Cash session is not pre-led by futures flow.** EUSTX50 CFD tracks FESX futures which open 08:00 Berlin, one hour before cash — the 09:00-09:30 "opening range" is not a clean reveal, it's a mid-flow continuation.
+3. **A basket whose information-processing is concentrated at that one venue.** DAX's 40 German blue chips all resolve their overnight information at Xetra's 09:00 auction; Eurostoxx 50's constituents resolve theirs across 4 separate auctions with different call mechanics.
+
+Refinement paths are instrument-specific — T+180 that unlocked GER40 hurts NDX100 and does nothing for EUSTX50 (−1.45 vs −1.54 baseline).
+
+**Implication for the next batch of instruments**: favor *single-venue* markets where we control for condition 1-3. Attempted batch (SWI20 / ITA40 / ASX200) was all data-blocked — same broker pattern as FRA40 and JPN225, no cash-open bars. The MT5-broker universe for ORB is exhausted at 5 testable instruments (SPX500, NDX100, GER40, UK100, EUSTX50). Further single-venue-auction tests (SWI20/ITA40/ASX200/JPN225/ESP35) require a different data source — Polygon, databento, SGX/OSE direct, or an MT5 broker with cash-index feeds — before the thesis can be broadened beyond the GER40 sample of one.
 
 ---
 
@@ -357,13 +425,16 @@ Cash CAC 40 opens at 09:00 Paris (= 09:00 Berlin), but this broker treats FRA40 
   - `experiments/orb/ger40_tod_decomposition.py` — per-entry-hour PnL attribution + entry-cutoff sweep.
 - QC deploy: `deploy/qc_orb_dax.py` — DAX futures, 5-min bars, Berlin session.
 - Data:
-  - `ohlc_data/SPX500_M5.csv`, `NDX100_M5.csv`, `GER40_M5.csv`, `UK100_M5.csv`, `FRA40_M5.csv`.
+  - Testable: `ohlc_data/SPX500_M5.csv`, `NDX100_M5.csv`, `GER40_M5.csv`, `UK100_M5.csv`, `EUSTX50_M5.csv`.
+  - Data-blocked (broker coverage gap at cash open): `FRA40_M5.csv`, `JPN225_M5.csv`, `SWI20_M5.csv`, `ITA40_M5.csv`, `ASX200_M5.csv`.
 - Run commands:
   - `ORB_SYMBOL=SPX500 venv/Scripts/python.exe experiments/orb/orb_demo.py`
   - `ORB_SYMBOL=NDX100 venv/Scripts/python.exe experiments/orb/orb_demo.py`
   - `ORB_SYMBOL=GER40 ORB_SESSION=EU venv/Scripts/python.exe experiments/orb/orb_demo.py`
   - `ORB_SYMBOL=UK100 ORB_SESSION=UK venv/Scripts/python.exe experiments/orb/orb_demo.py`
+  - `ORB_SYMBOL=EUSTX50 ORB_SESSION=EU venv/Scripts/python.exe experiments/orb/orb_demo.py`
   - `ORB_SYMBOL=GER40 ORB_SESSION=EU venv/Scripts/python.exe experiments/orb/orb_refine.py`
+  - `ORB_SYMBOL=EUSTX50 ORB_SESSION=EU venv/Scripts/python.exe experiments/orb/orb_refine.py`
   - `ORB_SYMBOL=GER40 ORB_SESSION=EU venv/Scripts/python.exe experiments/orb/orb_holdout.py`
   - `venv/Scripts/python.exe experiments/orb/ger40_asymmetry.py`
   - `venv/Scripts/python.exe experiments/orb/ger40_tod_decomposition.py`

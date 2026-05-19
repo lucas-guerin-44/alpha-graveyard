@@ -46,19 +46,27 @@ The numbers are intentionally conservative. Over-strict criteria kill some real-
 
 ## Current status
 
-### Live (paper or real)
+### Live (MT5 VPS, paper)
 
-| Strategy | Instrument | Research Sh | Live Sh | Platform | Notes |
-|---|---|---|---|---|---|
-| **XS-momentum long-only** | 20-instrument multi-asset (FX + ETFs + softs) | 0.92 | **0.35** | QuantConnect / IB | `lookback=189, skip=42, rebalance=63, top_k=5`. ~zero beta vs SPY. Live haircut is the reference point for all calibration in this project. |
-| **ORB DAX M5 (T+180min)** | GER40 CFD | 0.58 | TBD (just deployed) | MT5 / VPS / demo broker | First intraday strategy. Chosen for trade cadence (~7.5/week) more than alpha. Fade-gap +0.97 under symmetric R:R confirms real directional signal. 2023-2026 holdout Sharpe +0.55 (strongest holdout in the project). |
+| Strategy | Instrument | Research Sh | Live Sh | Notes |
+|---|---|---|---|---|
+| **ORB DAX M5 (T+180 LONG-only)** | GER40 CFD | 0.76 | TBD | First live deploy (2026-04-22). LONG-only is the strong leg (shorts shadow-logged). Fade-gap +1.04 under symmetric R:R. 2023-2026 holdout Sh +0.93. Cadence ~3.8/week. |
+| **NDX100 lunch-hour fade (LONG-only)** | NDX100 CFD | 1.02 (LONG-only, holdout +1.51) | TBD | Second live deploy (2026-05-13). Selective outlier-day strategy — ~16 LONG trades/year. Dir-gap +1.87, exceptionally cost-insensitive (Sh +0.72 even at 5pt RT). |
 
-### Validated, not yet live
+### Retired from live
 
-| Strategy | Instrument | Research Sh | Why not live |
+| Strategy | Was on | Retired | Notes |
 |---|---|---|---|
-| **Softs TSMOM ensemble** | COCOA + COFFEE + COTTON + CORN + SOYBEAN + LIVE_CATTLE (MH-LO + pyramid) | 0.89 | QC data-tier doesn't include ICE continuous futures; 3-leg CME-only subset is the fallback. |
-| **Treasury trend (IEF-MH)** | IEF (iShares 7-10y Treasury) | 0.67 | No QC port yet. Caught 2022 bond crash cleanly (+1.4% vs TLT -29%); monthly corr vs XS-mom ≈ 0 — first genuine diversifier found. |
+| **XS-momentum long-only** | QC/IB paper (research Sh 0.92 → live 0.35) | 2026-05 | Retired alongside the QC-as-live-platform decision. Canonical research-to-live-haircut reference (-0.57 Sh absolute drag). |
+
+### Validated phases 2-7, deploy blocked by broker access
+
+Both strategies were researched on Yahoo/Tiingo D1 data and targeted at QC. With QC retired, deploy on MT5 requires the broker to carry the underlying. Status as of 2026-05-13:
+
+| Strategy | Instruments | Research Sh | Broker (Eightcap) status |
+|---|---|---|---|
+| **Treasury trend (IEF-MH)** | IEF / TLT / BIL / SHY (US Treasury ETFs) | 0.67 (full) / 0.42 (holdout) | **BLOCKED** — no US Treasury CFDs on Eightcap. Research preserved; shelved unless alternative broker or duration-proxy reframe found. |
+| **Softs TSMOM ensemble** | COCOA + COFFEE + COTTON + CORN (broker subset of original 6-leg; SOYBEAN+LIVE_CATTLE absent on broker, LDSUGAR+WHEAT available as bonus) | 0.85 (full) / 1.44 (holdout) | 4/6 confirmed tradeable on Eightcap 2026-05-13. Next: pull broker D1 via `scripts/mt5_fetch.py`, re-run `softs_ensemble_demo.py` on broker data, write MT5 EA. Ensemble survives a 3-leg subset per orig thesis. |
 
 ### Rejected (tombstoned with documented reasons)
 
@@ -68,8 +76,12 @@ Full details in each strategy's `experiments/<name>/<name>.md`.
 |---|---|---|
 | BTC trend | Phase 8 blend | Research Sh 0.93 standalone, QC blend Sh 0.43 vs 0.90 threshold. Correlation inflated under real execution. |
 | Gold trend (XAUUSD) | Phase 2 | α ≤ buy-and-hold on every metric 2015-2026. |
-| ORB SPX500 | Phase 2 | Sh -0.92, fade variant also -0.95 → no signal content on SPX500 in CFD costs. |
+| ORB SPX500 / UK100 / EUSTX50 | Phase 2 | All 3 REJECT. SPX no directional content; UK100 no opening-impulse mechanism; EUSTX50 fragmented across 4 venues. |
 | ORB NDX100 | Phase 4 | Baseline Sh +0.03, only +0.19 in holdout. Real but too weak. |
+| NDX100 mean-reversion (z-score / BB / pre-close drift) | Phase 2 | 4 independent generic-pattern triggers all REJECT despite real fade-gaps. CFD friction is binding; only structural-microstructure (lunch fade) extracts edge. |
+| DAX z-score momentum / EOD-unwind / overnight / pre-auction / US-lead / gap-fade | Phases 2-4 | Six DAX intraday/overnight theses tested 2026-04, all REJECT. ORB is the only DAX edge that survived. DAX overnight specifically: CFD-data artifact, FDAX futures Sh -0.34. |
+| Pre-close MOC drift (SPX500/NDX100/GER40) | Phase 2 | All 3 venues REJECT. Mechanism real on NDX (dir-gap +0.74) but ~5 bps gross effect eaten by ~2.5 bps CFD spread. Not retail-extractable at M5+CFD on any major index. |
+| Lumber+Oats TSMOM | Phase 2 | Sign error: 12-1 mom long-only Sh +0.18, fade Sh +0.52 (gap +0.35 wrong way). Physical-supply commodities mean-revert, not trend. |
 | VIX term-structure (VRP) | Phase 4 | Sh 1.14 in 2015-2017, collapsed to -0.19 in 2024-2026 post-vol-compression regime. |
 | Equity pairs (mega-cap US) | Phase 2 | Sh -0.99 across 10 pairs, all 5 regime windows negative. Academic half-life of pairs ran out post-2002. |
 | FX carry / FX carry+trend / FX MR | Phase 2-4 | Post-2015 FX crosses are a graveyard for non-momentum factors. |
@@ -79,15 +91,15 @@ The rejection pile is *product*, not waste. It tells you which market-mechanism 
 
 ---
 
-## Deployment targets
+## Deployment platform
 
-Two live-trading platforms, picked per-strategy:
+**MetaTrader 5 on a rented VPS** — the only live platform. Strategy code is MQL5 Expert Advisors. Runs MT5 terminal under Wine on a Hetzner VPS (~€8/mo), accessed via SSH + VNC for debugging, sends a daily Telegram summary via cron. Autonomous 24/7 once attached. Live EA source and operational runbooks are kept private.
 
-**QuantConnect / Interactive Brokers** — for daily-cadence strategies on broadly-available instruments (US equities, FX, softs). Strategy code lives at `deploy/qc_<name>.py`. Free tier works for one live algo; multi-strategy books need a paid tier or a fallback venue.
+**QuantConnect / Interactive Brokers** is **NOT a live platform anymore** (as of 2026-05). The previous QC paper deploy of `xs_momentum` has been retired. New strategies need an MT5 EA to count as deployed.
 
-**MetaTrader 5 on a rented VPS** — for intraday and CFD-native strategies (DAX, SPX500, NDX100 via broker CFDs). Strategy code is MQL5 Expert Advisors at `deploy/<name>.mq5`. Runs MT5 terminal under Wine on a cheap European VPS (~€8/mo), accessed via SSH tunnel + VNC for occasional debugging, and sends a daily Telegram summary via cron. Autonomous 24/7 once attached.
+**Asset access** is wide on a typical retail MT5 broker — FX, index CFDs, single-stock CFDs, commodity CFDs (incl. softs), bond CFDs, BTC. Anything we have OHLC data for in `ohlc_data/` is in principle tradeable on the broker, including data fetched via Yahoo/Tiingo for backtest convenience. The constraint is **data-source revalidation**: research run on Yahoo/Tiingo continuous-futures or cash-ETF data must be re-run on the broker's actual MT5 feed before deploy, because CFD construction, point-value, and spread differ from the cash-equivalent / continuous-front construct. This is the same Phase-2-revalidation pattern that the `dax_overnight` CFD-vs-futures gate enforces (lesson #22 in `docs/RESEARCH_NOTES.md`).
 
-Total monthly infra cost for the current deployed book: ~€8.
+Total monthly infra cost for the current deployed book: ~€8 (Hetzner CX33).
 
 ---
 
@@ -111,13 +123,6 @@ quant-strategies-research/
 │   ├── fx_mean_reversion/        # Tombstoned
 │   ├── blended_portfolio/        # Superseded
 │   └── _archived/                # Older rejections (e.g. dual momentum)
-├── deploy/                  # Live-trading algorithms (platform-specific)
-│   ├── qc_xs_momentum.py         # QC, DEPLOYED
-│   ├── orb_dax.mq5               # MT5 EA, PAPER-DEPLOYED
-│   ├── qc_orb_dax.py             # QC port (blocked: FDAX futures not in QC free data tier)
-│   ├── qc_softs_ensemble.py      # QC, blocked on ICE data
-│   ├── qc_btc_trend.py           # Archived
-│   └── qc_blend_trio.py           # Archived
 ├── scripts/                 # Data fetchers + shared helpers
 │   ├── mt5_fetch.py              # MT5 broker (FX, CFDs, indices, intraday)
 │   ├── yahoo_fetch.py            # Yahoo Finance (futures, ETFs, daily)
@@ -127,8 +132,11 @@ quant-strategies-research/
 ├── ohlc_data/                # Local CSV cache (gitignored; reproducible via fetchers)
 └── docs/
     ├── WORKFLOW.md                # THE Phase 1-8 pipeline definition
-    └── RESEARCH_NOTES.md          # Rolling narrative: every strategy's status + lessons
+    ├── STATE.md                   # SINGLE SOURCE OF TRUTH for experiment verdicts + headline numbers (read this first)
+    └── RESEARCH_NOTES.md          # Cross-experiment methodological LESSONS (read before designing a new thesis)
 ```
+
+Live MT5 Expert Advisors and VPS operational runbooks live outside this public tree.
 
 **File convention per strategy:**
 
@@ -138,8 +146,7 @@ quant-strategies-research/
 | Phase 2 demo | `experiments/<name>/<name>_demo.py` |
 | Phase 3-6 validation | `experiments/<name>/<name>_validation.py` (or per-phase split) |
 | Engine `Strategy` subclass (optional) | `experiments/<name>/<name>_strategy.py` — for strategies that plug into the engine's event loop |
-| Phase 8 QC deploy | `deploy/qc_<name>.py` |
-| Phase 8 MT5 deploy | `deploy/<name>.mq5` |
+| Phase 8 deploy | private (MT5 EA on VPS) |
 
 Every strategy's code lives in its own `experiments/<name>/` subdir — thesis doc, demo, validations, and (if the strategy plugs into the engine's event loop) a `<name>_strategy.py` class. Most strategies are standalone pandas/numpy sims in `<name>_demo.py`; engine-integration is an optional path used by TSMOM and imbalance.
 
@@ -263,6 +270,7 @@ Distilled from the strategies that died. Full rolling log in [`docs/RESEARCH_NOT
 
 ## Further reading
 
+- [`docs/STATE.md`](docs/STATE.md) — **single source of truth for every experiment's verdict + headline numbers**. AI-readable structured per-experiment blocks. Updated after each experiment closes. Start here.
+- [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) — cross-experiment methodological lessons. Read this before designing a new thesis to avoid known traps.
 - [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — full Phase 1-8 pipeline with exact kill thresholds.
-- [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) — rolling log: every strategy's status, rejection reasons, and lessons. The single most useful doc in this repo.
-- Each `experiments/<name>/<name>.md` — strategy-specific thesis, validation trail, and tombstone record if applicable.
+- Each `experiments/<name>/<name>.md` — strategy-specific thesis, validation trail, and tombstone record. STATE.md indexes these; the deep-dives live here.

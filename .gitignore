@@ -10,9 +10,14 @@ __pycache__/
 *.pyd
 *.egg-info/
 
-# Local data (too big, reproducible via fetch scripts)
-ohlc_data/*.csv
-ohlc_data/rates/*.csv
+# Local data — NEVER commit OHLC / cached data anywhere in the repo.
+# Data is reproducible via scripts/*_fetch.py + datalake.
+*.csv
+*.parquet
+*.feather
+*.pkl
+*.h5
+*.npz
 tick_data/
 
 # Local config
@@ -39,5 +44,11 @@ exports/
 
 /docs/vps_connect.md
 
+# Live deployment artifacts (MT5 EAs, QC algos) — not published
+deploy/
+/docs/mq5_deploy.md
+
 # Opinionated per-collaborator working notes
 CLAUDE.md
+.claude
+

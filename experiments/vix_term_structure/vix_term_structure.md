@@ -68,9 +68,8 @@ Phase 4 kills if:
 Phase 6 kills if:
 - OOS 2023+ Sharpe ≤ 0. Post-2022 vol regime has been structurally different (persistent ~15-20 VIX range), filter may be too restrictive.
 
-## Reasons for prior skepticism (user-flagged)
+## Reasons for prior skepticism
 
-User's gut: "don't believe much in VRP." Legitimate concerns:
 1. **Negative skew that doesn't show up in Sharpe.** A 0.6 Sharpe with a single -30% day is not the same as a 0.6 Sharpe from equities — even if the math is identical. Calmar and worst-day matter more here than elsewhere.
 2. **Feb-2018 is in-sample.** If the filter "catches" Volmageddon in backtest, it's probably because we designed the filter after knowing Feb-5 happened. Phase 6 holdout (2023+) is where we find out if the filter actually generalizes.
 3. **Post-2022 vol compression.** With VIX stuck 13-18 for ~2 years, the roll premium has thinned. Could already be arb'd out for retail size.
