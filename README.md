@@ -52,6 +52,7 @@ The numbers are intentionally conservative. Over-strict criteria kill some real-
 |---|---|---|---|---|
 | **ORB DAX M5 (T+180 LONG-only)** | GER40 CFD | 0.76 | TBD | First live deploy (2026-04-22). LONG-only is the strong leg (shorts shadow-logged). Fade-gap +1.04 under symmetric R:R. 2023-2026 holdout Sh +0.93. Cadence ~3.8/week. |
 | **NDX100 lunch-hour fade (LONG-only)** | NDX100 CFD | 1.02 (LONG-only, holdout +1.51) | TBD | Second live deploy (2026-05-13). Selective outlier-day strategy — ~16 LONG trades/year. Dir-gap +1.87, exceptionally cost-insensitive (Sh +0.72 even at 5pt RT). |
+| **XAU session (Variant C)** | XAUUSD H1 | 0.79 (W4 binding +1.23) | TBD | Third live deploy (2026-05-16). 23:00→08:00 UTC 9h hold with DOWN-med prior-NY filter. Dir-gap +2.28, MDD -3.7%, ~39 trades/yr. Phases 2-7 all PASS in one session. |
 
 ### Retired from live
 
