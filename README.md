@@ -1,12 +1,20 @@
 # quant-strategies-research
 
 **A pipeline for killing bad trading-strategy ideas fast (and running the few that survive)**
+   
+ ‎ ‎ ‎   
+   
+| 73 | 54 | 5 | 64 | 8 |
+|:---:|:---:|:---:|:---:|:---:|
+| **strategies tested** | **tombstoned** (74%) | **live** (MT5 paper) | **methodology lessons** | **-phase pipeline** |
+   
+ ‎ ‎ ‎  
+   
+> **Reject rate: 74%.** Each tombstoned strategy ships with a post-mortem naming the failure mode. The few that survived the pipeline are the ones I trust.
 
-Most retail trading research is self-deception: elegant backtests that work beautifully on the sample they were built on, then lose money live when the costs, the regime shift, or the data-snooping you didn't know you were doing all show up at once. This repo is a system for not being that person.
+Every idea runs through the same 8 phases with kill criteria set *before* the backtest. Bad theses die in hours, not weeks. Survivors go to MT5 paper trading with a research-vs-live calibration loop ([`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) is the rolling log of what each death taught).
 
-Every idea runs the same 8-phase pipeline with **pre-committed kill criteria** at each stage. Flawed theses die in hours, not weeks. Surviving strategies are paper-traded live with an honest research-vs-live calibration loop. The record of what died and why (see [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md)) is as load-bearing as the few that lived.
-
-Built on top of [`backtesting-engine-2.0`](https://github.com/lucas-guerin-44/backtesting-engine). The engine repo stays clean; this one is allowed to be messy — thesis docs, demo scripts, failed validations, and tombstoned strategies sit alongside the live-deployable ones.
+Built on [`backtesting-engine-2.0`](https://github.com/lucas-guerin-44/backtesting-engine). The engine stays clean; this repo is allowed to be messy.
 
 ---
 
@@ -14,7 +22,7 @@ Built on top of [`backtesting-engine-2.0`](https://github.com/lucas-guerin-44/ba
 
 - [The pipeline](#the-pipeline)
 - [Current status](#current-status)
-- [Deployment targets](#deployment-targets)
+- [Deployment platform](#deployment-platform)
 - [Repo layout](#repo-layout)
 - [Setup](#setup)
 - [Running an experiment](#running-an-experiment)
@@ -25,9 +33,7 @@ Built on top of [`backtesting-engine-2.0`](https://github.com/lucas-guerin-44/ba
 
 ## The pipeline
 
-Every strategy — surviving or tombstoned — runs these 8 phases in order. A failure at any phase triggers a tombstone doc and the strategy is abandoned. This is intentional: the cost of one bad live trade vastly exceeds the cost of one premature rejection.
-
-Full definition with exact thresholds in [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
+8 phases, in order. Fail one, write the tombstone, move on. Full thresholds in [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 
 | Phase | What | Kill if... |
 |---|---|---|
@@ -40,7 +46,7 @@ Full definition with exact thresholds in [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 | **7. Cross-strategy correlation** | Correlation vs existing live/validated strategies. | Monthly correlation > 0.3 — unless it wins standalone enough to justify adding as a 2nd bet on the same theme. |
 | **8. Live** | Port to broker platform (MT5 for intraday is the only live path as of 2026-05). Paper-trade 3-6 months. | Live Sharpe trails research by > 25% (relative) haircut. Empirical haircut for clean same-broker single-strategy deploys is 10-25%; multi-strategy event books and CFD→futures porting can stack worse — see `docs/RESEARCH_NOTES.md` lesson #5 for the rewritten framing. To be validated against 6-12 months of live data per deploy. |
 
-The numbers are intentionally conservative. Over-strict criteria kill some real-edge strategies; over-lenient criteria let fake-edge strategies through to live trading where the lesson costs money. The project explicitly biases toward the former.
+Thresholds err on the strict side. A premature reject costs a tombstone doc. A false accept costs real money to learn the same lesson.
 
 ---
 
@@ -48,19 +54,9 @@ The numbers are intentionally conservative. Over-strict criteria kill some real-
 
 ### Live (MT5 VPS)
 
-| Strategy | Instrument | Research Sh | Live Sh | Live since | Cadence |
-|---|---|---|---|---|---|
-| **ORB DAX M5 (T+180 LONG-only)** | GER40 CFD | 0.76 | TBD | 2026-04-22 | ~3.8/week |
-| **NDX100 lunch-hour fade (LONG-only)** | NDX100 CFD | 1.02 | TBD | 2026-05-13 | ~16/year |
-| **XAU session (Variant C)** | XAUUSD H1 | 0.79 | TBD | 2026-05-16 | ~39/year |
-| **Event Calendar (4-event book)** | NDX100 H1 | per-event +0.37 to +1.22 | TBD | 2026-05-22 (FOMC) / 2026-05-24 (CPI, RS, NFP) | ~44/year |
-| **XAU break+retest M15 (FADE)** | XAUUSD M15 | 1.49 / W1 +1.50 / W2 +1.70 / W3 +1.36 | TBD | 2026-05-25 (paper, pending) | ~95/year (~1.8/wk) |
+5 strategies on MT5 paper. Mix of intraday breakout/fade and scheduled-macro-event drift, across GER40, NDX100, and XAUUSD. Per-strategy specifics (thesis, params, sizing, EA) are private.
 
-Per-strategy thesis, validation trail, and live config: [`experiments/<name>/<name>.md`](experiments/).
-
-#### Book-level performance (5 strategies treated as 8 component PnL series — 4 intraday + 4 events)
-
-Per the internal portfolio_risk_parity audit (inv-vol sizing, monthly rebal, [5%,35%] clip; methodology private). Refresh 2026-05-25 adds `xau_break_retest_m15` (FADE) as the 8th component:
+Aggregate book metrics from the internal portfolio_risk_parity audit (inv-vol sizing, monthly rebal, [5%,35%] clip):
 
 | Metric | Equal-weight | Risk-parity | Realistic live (after blended haircut) |
 |---|---|---|---|
@@ -71,61 +67,25 @@ Per the internal portfolio_risk_parity audit (inv-vol sizing, monthly rebal, [5%
 | Cross-strategy max pairwise corr | all in [-0.15, +0.15] | same | < 0.30 expected live |
 | Regime stability (4-window Sh) | 4/4 positive | 4/4 positive lift (W1 +0.57, W2 +0.31, W3 +0.41, W4 +0.28) | holdout-positive ≠ live-positive; validate over 6-12 months |
 
-The +2.33 risk-parity Sharpe is the **canonical research book number** (lifted from +1.92 on the prior 7-component book). The new `xau_break_retest_m15` component is the lowest-vol contributor (~1.8% ann) with near-zero correlation to everything else (vs `xau_session` specifically: -0.02 despite both being XAU — different TF, session and direction), so it absorbs ~26% of the inv-vol weight and meaningfully tightens both the Sharpe (+0.43 lift over EQ vs the prior +0.21 lift) and the MDD (-0.75% vs the prior -1.59%, ~50% shallower). The RP overlay's value-add grew because the new component's vol gap vs the rest of the book is wider than the prior 7-component spread.
+All 5 strategies have been live less than 6 months. Total live trades across the book are still under ~200, so σ(realized Sharpe) ≈ 0.7 — the +1.4 to +1.8 column is a modeled prior, not a measurement. Year-one realized Sharpe will plausibly land anywhere in +1.0 to +2.0 on noise alone. Real validation horizon is 6-12 months of concurrent live data.
 
-Deploy form remains **static quarterly EA sizing review**, not a dynamic overlay EA (the time-varying part of the inv-vol overlay adds nothing per the audit). xau_br_m15's inv-vol target is ~26% book weight (~2.06% risk/trade at 8-component scale) but recommended deploy is **0.50% (Validate tier)** during the initial paper window — the strategy is brand-new and the Phase 3 spread audit was originally a (proxy-based) FAIL, since resolved by real tick data but worth a fresh tick log re-check at deploy time.
+Sizing tiers, validation gates, review cadence, and the honest fears list are in [`docs/BOOK_PLAN.md`](docs/BOOK_PLAN.md) (private).
 
-**Realism call:** 4 of 5 strategies are < 6 months live (paper); `xau_break_retest_m15` is brand-new and not yet paper-deployed. At < 200 live trades per component σ(realized Sharpe) ≈ 0.7 — a single year of measured haircut is dominated by sampling noise, not by underlying degradation (per [RESEARCH_NOTES.md lesson #5](docs/RESEARCH_NOTES.md)). The +1.4 to +1.8 expected live book Sh is the modeled prior, not a measurement; the true validation horizon is 6-12 months of concurrent live data, with the event book and the new M15 leg needing the longer end (sparse-event cadence + first-deploy spread-realization risk respectively). The book Sharpe could realistically land anywhere in **+1.0 to +2.0** in year one, with the lower tail driven by event-strategy haircuts, an xau_br_m15 spread blow-out, or a single regime break (e.g. correlated tail in a vol-shock that affects 3+ legs simultaneously).
+### Validated but not deployed
 
-**Book-level reference**: sizing tiers, validation gates (paper → real money → half-Kelly), review cadence, and the candid fears-and-concerns list live in [`docs/BOOK_PLAN.md`](docs/BOOK_PLAN.md). Per-strategy live tracking is in [`live_tracking/<name>.md`](live_tracking/).
+Two strategies cleared Phases 2-7 but are broker-blocked: **treasury_trend** (no US Treasury CFDs on the broker) and **softs_ensemble** (D1 history depth on broker too short for the 12M lookback). Both research traces are in `experiments/<name>/`.
 
-### Retired from live
+### Rejected
 
-| Strategy | Was on | Retired | Reason |
-|---|---|---|---|
-| **XS-momentum long-only** | QC/IB paper (research Sh 0.92 → live 0.35) | 2026-05 | QC platform retired. See [`experiments/xs_momentum/`](experiments/xs_momentum/) for the haircut post-mortem. |
-
-### Validated phases 2-7, deploy blocked by broker access
-
-Both strategies were researched on Yahoo/Tiingo D1 data and targeted at QC. With QC retired, deploy on MT5 requires the broker to carry the underlying. Status as of 2026-05-13:
-
-| Strategy | Instruments | Research Sh | Broker (Eightcap) status |
-|---|---|---|---|
-| **Treasury trend (IEF-MH)** | IEF / TLT / BIL / SHY (US Treasury ETFs) | 0.67 (full) / 0.42 (holdout) | **BLOCKED** — no US Treasury CFDs on Eightcap. Research preserved; shelved unless alternative broker or duration-proxy reframe found. |
-| **Softs TSMOM ensemble** | COCOA + COFFEE + COTTON + CORN (broker subset of original 6-leg; SOYBEAN+LIVE_CATTLE absent on broker, LDSUGAR+WHEAT available as bonus) | 0.85 (full) / 1.44 (holdout) | 4/6 confirmed tradeable on Eightcap 2026-05-13. Next: pull broker D1 via `scripts/mt5_fetch.py`, re-run `softs_ensemble_demo.py` on broker data, write MT5 EA. Ensemble survives a 3-leg subset per orig thesis. |
-
-### Rejected (tombstoned with documented reasons)
-
-Full details in each strategy's `experiments/<name>/<name>.md`.
-
-| Strategy | Phase killed | Root cause |
-|---|---|---|
-| BTC trend | Phase 8 blend | Research Sh 0.93 standalone, QC blend Sh 0.43 vs 0.90 threshold. Correlation inflated under real execution. |
-| Gold trend (XAUUSD) | Phase 2 | α ≤ buy-and-hold on every metric 2015-2026. |
-| ORB SPX500 / UK100 / EUSTX50 | Phase 2 | All 3 REJECT. SPX no directional content; UK100 no opening-impulse mechanism; EUSTX50 fragmented across 4 venues. |
-| ORB NDX100 | Phase 4 | Baseline Sh +0.03, only +0.19 in holdout. Real but too weak. |
-| NDX100 mean-reversion (z-score / BB / pre-close drift) | Phase 2 | 4 independent generic-pattern triggers all REJECT despite real fade-gaps. CFD friction is binding; only structural-microstructure (lunch fade) extracts edge. |
-| DAX z-score momentum / EOD-unwind / overnight / pre-auction / US-lead / gap-fade | Phases 2-4 | Six DAX intraday/overnight theses tested 2026-04, all REJECT. ORB is the only DAX edge that survived. DAX overnight specifically: CFD-data artifact, FDAX futures Sh -0.34. |
-| Pre-close MOC drift (SPX500/NDX100/GER40) | Phase 2 | All 3 venues REJECT. Mechanism real on NDX (dir-gap +0.74) but ~5 bps gross effect eaten by ~2.5 bps CFD spread. Not retail-extractable at M5+CFD on any major index. |
-| Lumber+Oats TSMOM | Phase 2 | Sign error: 12-1 mom long-only Sh +0.18, fade Sh +0.52 (gap +0.35 wrong way). Physical-supply commodities mean-revert, not trend. |
-| VIX term-structure (VRP) | Phase 4 | Sh 1.14 in 2015-2017, collapsed to -0.19 in 2024-2026 post-vol-compression regime. |
-| Equity pairs (mega-cap US) | Phase 2 | Sh -0.99 across 10 pairs, all 5 regime windows negative. Academic half-life of pairs ran out post-2002. |
-| FX carry / FX carry+trend / FX MR | Phase 2-4 | Post-2015 FX crosses are a graveyard for non-momentum factors. |
-| Dual momentum | Phase 2 | IS return negative even with realistic costs. |
-
-The rejection pile is *product*, not waste. It tells you which market-mechanism narratives are still alive in retail reality vs. which are cargo-culted from papers that worked in a different era.
+54 tombstoned strategies with documented post-mortems. Full table in [`docs/STATE_GRAVEYARD.md`](docs/STATE_GRAVEYARD.md). The patterns that recur — sign-inversion on post-2022 US-index MR, CFD-vs-cash-equity cost gaps, regime-decay on factor strategies — are written up as numbered lessons in [`RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md).
 
 ---
 
 ## Deployment platform
 
-**MetaTrader 5 on a rented VPS** — the only live platform. Strategy code is MQL5 Expert Advisors. Runs MT5 terminal under Wine on a Hetzner VPS (~€8/mo), accessed via SSH + VNC for debugging, sends a daily Telegram summary via cron. Autonomous 24/7 once attached. Live EA source and operational runbooks are kept private.
+MetaTrader 5 on a Hetzner VPS (~€8/mo), MQL5 EAs, daily Telegram summary via cron. Autonomous 24/7 once attached. EA source and ops runbooks are private.
 
-**QuantConnect / Interactive Brokers** is **NOT a live platform anymore** (as of 2026-05). The previous QC paper deploy of `xs_momentum` has been retired. New strategies need an MT5 EA to count as deployed.
-
-**Asset access** is wide on a typical retail MT5 broker — FX, index CFDs, single-stock CFDs, commodity CFDs (incl. softs), bond CFDs, BTC. Anything we have OHLC data for in `ohlc_data/` is in principle tradeable on the broker, including data fetched via Yahoo/Tiingo for backtest convenience. The constraint is **data-source revalidation**: research run on Yahoo/Tiingo continuous-futures or cash-ETF data must be re-run on the broker's actual MT5 feed before deploy, because CFD construction, point-value, and spread differ from the cash-equivalent / continuous-front construct. This is the same Phase-2-revalidation pattern that the `dax_overnight` CFD-vs-futures gate enforces (lesson #22 in `docs/RESEARCH_NOTES.md`).
-
-Total monthly infra cost for the current deployed book: ~€8 (Hetzner CX33).
+Broker asset access is wide: FX, index CFDs, single-stock CFDs, commodity CFDs, bond CFDs, BTC. The binding constraint is **data-source revalidation**. Research run on Yahoo/Tiingo continuous-futures or cash-ETF data has to be re-run on the broker's MT5 feed before deploy. CFD construction differs enough from cash-equivalent or continuous-front that the edge can vanish (see `dax_overnight` in lesson #22 — research Sh +0.80, FDAX futures Sh -0.34).
 
 ---
 
@@ -133,48 +93,36 @@ Total monthly infra cost for the current deployed book: ~€8 (Hetzner CX33).
 
 ```
 quant-strategies-research/
-├── experiments/             # One subdir per strategy: thesis .md + demo/validation .py + (optional) engine Strategy class
-│   ├── xs_momentum/              # LIVE (QC)
-│   ├── orb/                      # LIVE (MT5 VPS) — GER40 variant; covers SPX500/NDX100/GER40/UK100/FRA40 research
-│   ├── treasury_trend/           # Validated Phases 2-7, no deploy yet
-│   ├── softs_ensemble/           # Validated Phases 2-6, QC port blocked on ICE data
-│   ├── btc_trend/                # Rejected at Phase 8 blend
-│   ├── gold_trend/               # Rejected; single_instrument_scan.py survived as a screener
-│   ├── tsmom/                    # TSMOM LO + variants + validations (+ tsmom_strategy.py, tsmom_filtered_strategy.py)
-│   ├── imbalance/                # FVG / imbalance — inherited, not re-validated (+ imbalance_strategy.py)
-│   ├── vix_term_structure/       # Tombstoned
-│   ├── equity_pairs/             # Tombstoned
-│   ├── fx_carry/                 # Tombstoned
-│   ├── fx_carry_trend/           # Tombstoned
-│   ├── fx_mean_reversion/        # Tombstoned
-│   ├── blended_portfolio/        # Superseded
-│   └── _archived/                # Older rejections (e.g. dual momentum)
+├── experiments/             # One subdir per strategy (thesis .md + demo/validation .py)
+│   ├── <rejected>/               # ~30 tombstoned experiments — the public examples of the pipeline
+│   ├── treasury_trend/           # Validated Phases 2-7, broker-blocked
+│   ├── softs_ensemble/           # Validated Phases 2-6, broker-blocked
+│   └── _live/                    # Deployed strategies (private, gitignored)
 ├── scripts/                 # Data fetchers + shared helpers
 │   ├── mt5_fetch.py              # MT5 broker (FX, CFDs, indices, intraday)
-│   ├── yahoo_fetch.py            # Yahoo Finance (futures, ETFs, daily)
-│   ├── tiingo_fetch.py            # Tiingo (US equities, Yahoo rate-limit fallback)
-│   ├── fred_fetch.py              # FRED (interest rates for carry)
-│   └── _datalake.py               # Shared CSV + datalake-ingest helpers
-├── ohlc_data/                # Local CSV cache (gitignored; reproducible via fetchers)
+│   ├── yahoo_fetch.py            # Yahoo (futures, ETFs)
+│   ├── tiingo_fetch.py           # Tiingo (US equities)
+│   ├── fred_fetch.py             # FRED (interest rates)
+│   └── _datalake.py              # Datalake client
+├── ohlc_data/                # Local OHLC cache (gitignored)
 └── docs/
-    ├── WORKFLOW.md                # THE Phase 1-8 pipeline definition
-    ├── STATE.md                   # SINGLE SOURCE OF TRUTH for experiment verdicts + headline numbers (read this first)
-    └── RESEARCH_NOTES.md          # Cross-experiment methodological LESSONS (read before designing a new thesis)
+    ├── WORKFLOW.md               # The 8-phase pipeline definition
+    ├── STATE.md                  # Per-experiment verdicts + headline numbers
+    ├── STATE_GRAVEYARD.md        # Tombstoned strategies with failure modes
+    └── RESEARCH_NOTES.md         # Cross-experiment methodological lessons
 ```
 
-Live MT5 Expert Advisors and VPS operational runbooks live outside this public tree.
-
-**File convention per strategy:**
+Per-strategy file convention:
 
 | Stage | File |
 |---|---|
 | Thesis | `experiments/<name>/<name>.md` |
 | Phase 2 demo | `experiments/<name>/<name>_demo.py` |
-| Phase 3-6 validation | `experiments/<name>/<name>_validation.py` (or per-phase split) |
-| Engine `Strategy` subclass (optional) | `experiments/<name>/<name>_strategy.py` — for strategies that plug into the engine's event loop |
+| Phase 3-6 validation | `experiments/<name>/<name>_validation.py` |
+| Engine `Strategy` subclass (optional) | `experiments/<name>/<name>_strategy.py` |
 | Phase 8 deploy | private (MT5 EA on VPS) |
 
-Every strategy's code lives in its own `experiments/<name>/` subdir — thesis doc, demo, validations, and (if the strategy plugs into the engine's event loop) a `<name>_strategy.py` class. Most strategies are standalone pandas/numpy sims in `<name>_demo.py`; engine-integration is an optional path used by TSMOM and imbalance.
+Most strategies are standalone pandas/numpy sims in `_demo.py`. The engine `Strategy` subclass is used by TSMOM and imbalance.
 
 ---
 
@@ -204,7 +152,7 @@ Experiment scripts add the engine repo to `sys.path` via a common bootstrap so i
 
 ## Running an experiment
 
-Each strategy dir is self-contained. Demos report Phase 2 stats; validations handle Phases 3-6. Example session:
+Demos report Phase 2 stats; validations handle Phases 3-6. Example session:
 
 ```bash
 # Phase 2 (MVI) — single-file backtest, realistic costs
@@ -220,7 +168,7 @@ python experiments/softs_ensemble/softs_ensemble_regime_sens_oos.py
 python experiments/gold_trend/single_instrument_scan.py
 ```
 
-Deployed-strategy research (orb, lunch_fade, xau_session, macro-event book, xau_break_retest_m15, and the portfolio_risk_parity overlay) is kept private — full thesis docs, demo scripts, params, and EAs are not part of the public repo. Rejected experiments under `experiments/<name>/` are the public-facing examples of the same pipeline applied end-to-end.
+Deployed-strategy research is private (full thesis, params, demos, EAs). The rejected experiments under `experiments/<name>/` are the public examples of the pipeline applied end-to-end.
 
 ---
 
@@ -249,7 +197,7 @@ python scripts/fred_fetch.py
 
 ## Key lessons from the graveyard
 
-Distilled from the strategies that died. Full rolling log in [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md).
+A short selection. The full numbered list (64 lessons) is in [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md).
 
 1. **Low correlation ≠ useful diversifier.** A strategy with correlation 0.1 and negative Sharpe subtracts from your book. Correlation alone doesn't justify inclusion; positive standalone Sharpe does.
 
@@ -283,7 +231,7 @@ Distilled from the strategies that died. Full rolling log in [`docs/RESEARCH_NOT
 
 ## Further reading
 
-- [`docs/STATE.md`](docs/STATE.md) — **single source of truth for every experiment's verdict + headline numbers**. AI-readable structured per-experiment blocks. Updated after each experiment closes. Start here.
-- [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) — cross-experiment methodological lessons. Read this before designing a new thesis to avoid known traps.
-- [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — full Phase 1-8 pipeline with exact kill thresholds.
-- Each `experiments/<name>/<name>.md` — strategy-specific thesis, validation trail, and tombstone record. STATE.md indexes these; the deep-dives live here.
+- [`docs/STATE.md`](docs/STATE.md) — per-experiment verdicts + headline numbers. Start here.
+- [`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) — 64 cross-experiment lessons. Read before designing a new thesis.
+- [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — the 8-phase pipeline with kill thresholds.
+- `experiments/<name>/<name>.md` — strategy-specific thesis, validation, and tombstone.
