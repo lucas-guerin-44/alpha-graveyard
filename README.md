@@ -67,9 +67,9 @@ Aggregate book metrics from the internal portfolio_risk_parity audit (inv-vol si
 | Cross-strategy max pairwise corr | all in [-0.15, +0.15] | same | < 0.30 expected live |
 | Regime stability (4-window Sh, RP) | 4/4 positive | W1 +2.82 / W2 +1.74 / W3 +3.82 / W4 +2.48 | holdout-positive ≠ live-positive; validate over 6-12 months |
 
-All 6 strategies have been live less than 6 months. Total live trades across the book are still under ~200, so σ(realized Sharpe) ≈ 0.7 — the +1.6 to +2.0 column is a modeled prior, not a measurement. Year-one realized Sharpe will plausibly land anywhere in +1.2 to +2.4 on noise alone. Real validation horizon is 6-12 months of concurrent live data.
-
-Sizing tiers, validation gates, review cadence, and the honest fears list are in [`docs/BOOK_PLAN.md`](docs/BOOK_PLAN.md) (private).
+All 6 strategies have been live less than 6 months.  
+Total live trades across the book are still under ~200, so σ(realized Sharpe) ≈ 0.7 — the +1.6 to +2.0 column is a modeled prior, not a measurement.  
+Year-one realized Sharpe will plausibly land anywhere in +1.2 to +2.4 on noise alone. Real validation horizon is 6-12 months of concurrent live data.  
 
 ### Validated but not deployed
 
