@@ -9,21 +9,22 @@ Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD
 
 ---
 
-## Snapshot (2026-05-25)
+## Snapshot (2026-05-26)
 
 | Status | Count | Names |
 |---|---|---|
-| Live (MT5 VPS, paper) | 5 | `orb_dax`, `lunch_fade`, `xau_session`, `event_calendar`, `xau_br_m15` |
+| Live (MT5 VPS, paper) | 6 | `orb_dax`, `lunch_fade`, `xau_session`, `event_calendar`, `xau_br_m15`, `xau_br_h1` |
 | Retired from live | 1 | `xs_momentum` |
 | Validated, blocked at broker | 3 | `treasury_trend` (no bonds), `softs_ensemble` (D1 depth too short), `pead_midcap` (research-PASS Sh +0.76 / 3-of-3 regimes / dir-gap +1.71, but **20d hold × CFD swap ~110bp RT eats >half of 100-200bp gross** — deployable on cash equities, not on CFD book) |
 | Keep-for-reference / watch-list | 3 | `tsmom`, `btc_trend`, `btc_intraday` |
 | Pending Phase 2 | 1 | `gold_trend` |
-| **Portfolio overlay — PASS** | 1 | **`portfolio_risk_parity` (inv-vol sizing across 7 strategies; book Sh +1.71 → +1.92, +0.21 lift, 3/4 regimes positive; deploy = static quarterly EA sizing review)** |
+| **Portfolio overlay — PASS** | 1 | **`portfolio_risk_parity` (inv-vol sizing across 9 components; re-audited 2026-05-26 with `xau_br_h1` as 9th — book Sh **+2.16 EQ → +2.67 RP** (+0.51 lift), 4/4 regimes positive; deploy = static quarterly EA sizing review)** |
 | Diagnostic studies (no deploy path) | 1 | `regime_hurst_diagnostic` (MARGINAL — TSMOM-side only) |
 | Unvalidated (inherited) | 1 | `imbalance` |
 | Institutional-only | 3 | `fx_session` (retail RT cost eats edge); `xag_session` (Eightcap XAG 8bp spread eats Variant C gross); `xpt_session` (Eightcap XPT Asia 23bp spread; killed without Phase 2 — cost ceiling decisive) |
-| Rejected | 54 | → [STATE_GRAVEYARD.md](STATE_GRAVEYARD.md) — incl. `xau_break_retest` (M5), `xau_imbalance` (M5, upgraded REJECT after M15 follow-up confirmed W1/W2 weakness), `xau_imbalance_m15` |
-| **Total** | **73** | |
+| Rejected | 55 | → [STATE_GRAVEYARD.md](STATE_GRAVEYARD.md) — incl. `xau_break_retest` (M5), `xau_imbalance` (M5, upgraded REJECT after M15 follow-up confirmed W1/W2 weakness), `xau_imbalance_m15`, **`xau_ldn_am_fade`** (session-transplant of deployed NY-AM FADE onto LDN-AM 07-10 UTC — REJECT, lesson #-14) |
+| Deploy-paper ready (Phase 2-3 PASS) | 0 | (none — `xau_break_retest_h1` graduated to live 2026-05-26) |
+| **Total** | **75** | |
 
 ---
 
@@ -56,12 +57,16 @@ Each entry below shows research-level metrics and the deploy date; mechanism is 
 - XAU cross-asset extension REJECTED 2026-05-25 (lesson #62)
 
 ### `xau_break_retest_m15` — DEPLOYED_PAPER
-- XAUUSD M15 NY-AM session | Break-of-Structure + retest, **FADE** direction (continuation = REJECT)
-- Sh **+1.49** full / **W1 +1.50 / W2 +1.70 / W3 +1.36** | MDD -2.17% | n=753 (95/yr) | WR 38.6% / PF 1.72 | fade-gap +1.92 | deflated Sh +1.30
-- All 11/11 Phase 2 kill criteria PASS at baseline; ATR-floor + ADX variants all INSUFFICIENT_N (lesson #63)
-- **Phase 3**: ALL 4 controls PASS. C1 cross-session decisive (in-session vs off-sessions Δ Sh > +1.7). C2 block-bootstrap CIs all lower-bounds positive. C4 macro-release calendar PASS (non-macro > macro; mechanism is broader than news-overshoot). C3 real-tick spread audit PASS (datalake ticks, n=47,941: p95 well under deploy bar).
+- XAUUSD M15 NY-AM session | BoS+retest **FADE** | Sh +1.49 / W1 +1.50 / W2 +1.70 / W3 +1.36 | MDD -2.17% | 753 trades (95/yr)
 - Mechanism: MM re-anchoring at broken levels + absence of NY-AM directional drift on XAU
+- All 11/11 Phase 2 + 4/4 Phase 3 controls PASS; real-tick spread audit PASS (n=47,941)
 - deployed 2026-05-25
+
+### `xau_break_retest_h1` — DEPLOYED_PAPER
+- XAUUSD H1 NY 12-18 UTC | BoS+retest **FADE** | Sh +1.50 / W1 +1.21 / W2 +1.59 / W3 +1.66 | MDD -1.68% | 924 trades (119/yr)
+- Mechanism: same as M15 NY-AM, at coarser TF and wider window (lesson #-15 — TF×window M-shape; H1 12-18 is the local maximum)
+- 6/6 Phase 3 controls PASS; corr +0.12 vs M15 sibling → co-deploy as separate EA (hedging account, separate magic number)
+- deployed 2026-05-26
 
 ---
 
@@ -143,7 +148,7 @@ Each entry below shows research-level metrics and the deploy date; mechanism is 
 
 ## DEPLOY CANDIDATES (Phase 2 PASS, pending Phase 7-8 build)
 
-(none)
+(none currently — `xau_break_retest_h1` graduated to DEPLOYED 2026-05-26)
 
 ---
 
@@ -153,7 +158,8 @@ Each entry below shows research-level metrics and the deploy date; mechanism is 
 - Inv-vol sizing overlay across the deployed book
 - Research: book Sh **+1.71 EQ → +1.92 RP (lift +0.21)** | MDD essentially flat | **3/4 regimes positive incl. holdout**
 - Key insight: dynamic monthly rebal contributes ~0; static inv-vol gives the entire lift (sparse-event strategies fall back to full-sample vol). Deploy as **quarterly sizing review**, not pipelined rebal.
-- Re-audit 2026-05-25 with 8th component added: book Sh lifts to **+2.33 RP**, MDD tightens ~50% (-0.75% audit notional)
+- Re-audit 2026-05-25 (8th component `xau_br_m15`): book Sh +2.33 RP, MDD -0.75% audit notional
+- Re-audit **2026-05-26 (9th component `xau_br_h1`)**: book Sh **+2.16 EQ → +2.67 RP (+0.51 lift)**, MDD -1.10% EQ / -0.60% RP, 4/4 regimes positive (W1 +2.82 / W2 +1.74 / W3 +3.82 / W4 +2.48), max pairwise corr +0.12 (m15↔h1)
 - Detailed methodology + weights + implementation: private
 
 ---
@@ -161,6 +167,10 @@ Each entry below shows research-level metrics and the deploy date; mechanism is 
 ## CROSS-EXPERIMENT PATTERNS
 
 Findings that emerged from multiple experiments and now constrain what's worth proposing. Full detail in [RESEARCH_NOTES.md](RESEARCH_NOTES.md).
+
+-15. **TF×window is a 2-D search; wider session windows only become extractable at coarser timeframes (M-shape across the TF ladder) (2026-05-26).** `xau_break_retest_h1` (H1 NY 12-18 FADE Sh +1.50, all 6 Phase 3 controls PASS, deploy-paper ready) combined with cross-TF agent finding: same FADE mechanism scored M15 13-15 UTC Sh +1.49 (deployed), **M15 12-18 UTC Sh +1.09 (WORSE than M15 13-15 — wider M15 window dilutes)**, H1 12-18 UTC Sh +1.50 (best at H1), H4 lb=4 tol=0.5 Sh +1.37. The M-shape across the TF ladder is a structural property: at M15, the extra noise from the 12-13 pre-cash and 15-18 NY-PM hours dilutes faster than the extra signal accumulates; at H1, the lower bar count makes the wider window net-additive. **Operational consequence (binding rule)**: a naive "extend the deployed M15 strategy's session window" would REGRESS production (M15 12-18 < M15 13-15 by Sh -0.40). Wider-window deploys must be done at the timeframe where the M-shape peaks, not by stretching the existing TF. **Methodological consequence**: for any future intraday-microstructure thesis, the candidate search space is 2-D (TF × window width), not 1-D — finding the local maximum requires the grid sweep, and the "best at M15" need not be the "best overall". Pairs with lesson #-14 — together they tombstone two naive transplant strategies: (a) same-instrument-same-TF-different-session (LDN-AM REJECT), (b) same-instrument-same-session-wider-TF (M15 12-18 < M15 13-15). The deploy-grade transplant is same-instrument-different-TF-on-the-window-that-peaks-at-that-TF.
+
+-14. **Session-portability ON THE SAME INSTRUMENT is not free — intraday-microstructure edge does NOT auto-transfer across session windows (2026-05-26).** `xau_ldn_am_fade` REJECT decisive: identical M15 BoS+retest FADE simulator, identical XAU instrument, identical 0.20pt cost — only the session window moves from deployed NY-AM 13-15 UTC (Sh +1.49 / W1 +1.50 / W2 +1.70 / W3 +1.36) to LDN-AM 07-10 UTC. Result: baseline Sh −0.25 / W1 +0.10 / W2 −0.63 / W3 −0.28 / n=1048. Fade-gap stays positive (+0.44) so the *direction* of the mechanism is preserved, but absolute magnitude collapses to ~zero gross. Cost-stress @0.40pt Sh −1.23. ATR-floor variants all INSUFFICIENT_N (atr-10 FADE Sh +0.68 / n=16 / 0.9y is a post-mid-2025 vol-regime artefact). Trade-by-trade correlation vs deployed NY-AM FADE = −0.07 over 1372 shared days — confirms REJECT is signal-absence-driven, NOT redundancy-driven. **Mechanistic reasons LDN-AM kills the mechanism**: (a) `xau_session` already captures positive drift through ~08 UTC; residual drift bleeds into 07-10 UTC and punishes fade entries; (b) LME AM auction (10:30 UTC) one-way real-money flow pre-positions in the entry window; (c) the MM re-anchoring mechanism needs an *absence-of-drift* environment to clear (xau_break_retest_m15 Phase 3 C1 control shows NY-AM in-session vs off-sessions Δ Sh > +1.7), and LDN-AM does not satisfy that prerequisite. Extends lesson #-3 from cross-instrument (XAU/BTC/WTI) to cross-session-same-instrument (XAU NY-AM vs XAU LDN-AM) — the mechanism is asymmetric across BOTH axes. **New methodological rule**: before transplanting an intraday-microstructure strategy to a second session window on the same instrument, explicitly run the in-session-vs-off-sessions C1 control on the candidate window FIRST; if Δ Sh < +0.50, do not run full Phase 2. (This rule would have killed `xau_ldn_am_fade` in 10 minutes instead of 50.) Also sharpens the XAG `_xag_deep_dive.py` Test 4 framework: zero-cost gross session-screens are NOT a transplant primitive — they screen for *direction*, not deploy-grade Sharpe; transplant decisions need a positive zero-cost Sharpe in all of W1/W2/W3 as a prerequisite, which the XAG hint did not satisfy.
 
 -13. **Scheduled US-macro LONG drift on NDX is *first-read-mid-month-mid-cycle* specific — PCE falsifies lesson #56's broad framing (2026-05-24).** `pre_pce_drift` REJECT decisive: LONG full Sh +0.07 / **W4 Sh −1.23** (vs CPI W4 Sh +1.15 on near-identical inflation info), WF 3/3 OOS NEGATIVE monotonic decay (−0.14 → −0.55 → −1.23), null-gap +0.161 (half +0.30 threshold), 6/9 binding pre-commits FAIL. **Placebo benign** (mean −0.040%, t −0.29) RULES OUT month-end structural-drift confound — rejection is PCE-specific signal failure, NOT calendar artefact. The distinguishing axes (extracted ex-post): FOMC (mid-cycle Wed, first-read) PASSES LONG; CPI (mid-month Tue/Wed/Thu, first-read inflation) PASSES LONG; Retail Sales (mid-month Wed, first-read real economy) PASSES LONG; NFP (first-Friday, first-read, Friday-microstructure exception) PASSES SHORT; **PCE (end-of-month Friday-dominated 76%, confirming-read after CPI) has NO drift either side**. Refined framework: only events that align on (a) mid-month/mid-cycle calendar position, (b) non-Friday day-of-week, AND (c) first-read information-cycle position inherit the LONG drift. Macro-event book is therefore **NOT auto-expandable** to every US-macro release — each new candidate (PPI, JOLTS, ISM, GDP, durable goods, consumer confidence) needs explicit 3-axis screening before pre-commit. **Strengthens CPI's deploy stance** (placebo benign rules out the generic-08:30-ET-weekday null). Methodological win: the canonical-test design (close-twin event as falsification test, not diversification add) generated a sharper framework refinement than three diverse extensions would have. Pairs with #-12 — together these bound the macro-event-drift family on two axes: venue-of-asset (index, not own-commodity) AND event-shape (first-read mid-month/cycle, not confirming-read end-of-month Friday). See lesson #62.
 
@@ -215,3 +225,16 @@ On experiment close:
 2. Add a 4-line entry here (active) or one row in [STATE_GRAVEYARD.md](STATE_GRAVEYARD.md) (REJECT). Link the name to the thesis doc.
 3. Cross-experiment pattern → add lesson to [RESEARCH_NOTES.md](RESEARCH_NOTES.md) + 1-line summary to patterns section above.
 4. Memory: only for cross-experiment patterns + user preferences + conventions. Not per-experiment status.
+
+On strategy graduating to DEPLOYED (Phase 8 — paper or real):
+1. **Move the strategy directory into `experiments/_live/<name>/`** if it isn't already there. Fix any `_ROOT` / `sys.path` references in its `.py` files (add one more `os.path.dirname()` since the dir is now one level deeper).
+2. **`docs/STATE.md`** — move the entry from `DEPLOY CANDIDATES` to `DEPLOYED`. Rewrite to the public-summary format (research metrics + mechanism + deploy date; **no** params, EA filename, sizing, or operational gating — those are private). Bump the snapshot table's `Live` count + add the short slug to the names list. Zero out the `Deploy-paper ready` row if this was the last candidate.
+3. **`README.md`** — bump the header counter table (`live`); update the `## Current status` paragraph if the new strategy changes the instrument/asset-class footprint; update the aggregate book metrics table after step 6.
+4. **`experiments/book_review/book_yearly.py`** — add `run_<new_name>()` and wire it into `parts = [...]` and the per-strategy contribution loop; add a sizing-base entry. Run to refresh `book_yearly.csv`, `per_strategy_yearly.csv`, and the `book_yearly.png` tearsheet.
+5. **`experiments/_live/portfolio_risk_parity/portfolio_risk_parity_demo.py`** — add `run_<new_short_name>()` returning a daily-PnL series; add the slug to `STRATS`; wire into `load_all_daily()`. Re-run to refresh the 9+ component audit. The new EQ / RP / regime numbers are what go into `BOOK_PLAN.md` §2.1.
+6. **`docs/BOOK_PLAN.md`** — add a row to `## 1. Current book composition`; update `## 4. Gate 0` "newest strategy" + count; **replace** `## 2.1` Sharpe / CAGR / MDD / TID / corr / regime numbers with the re-run portfolio_risk_parity outputs from step 5; bump `## 2.2`'s "live target" range if the audit Sh moved materially (e.g. ±0.20).
+7. **Live tracking** — create `live_tracking/<name>.md` with the per-strategy kill-trigger spec, starting balance, and first-trade-due date. Cross-link from BOOK_PLAN's `## 7. Realism / sanity references` block.
+8. **Private deploy state** — write `deploy/mq5/<name>.mq5`, register magic number, hedging-account check, margin headroom check (these are private; not committed to the public tree).
+9. **Memory** — usually nothing to save (deploy state is per-strategy, not a cross-experiment lesson). Exception: if the deploy surfaces a *new* methodological rule (e.g. "co-deploy of two TFs on same instrument requires hedging-mode account and separate magic numbers"), add it to feedback memory.
+
+Note on cadence: the *research-side audit* (step 5) gets re-run on every deploy graduation so BOOK_PLAN §2.1 reflects current book composition. The *live-side sizing review* (i.e. shifting the actual EA risk multipliers based on inv-vol weights) stays on the **quarterly cadence per BOOK_PLAN §5** — re-running the audit doesn't trigger a live sizing change mid-quarter.

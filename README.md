@@ -4,13 +4,13 @@
    
  ‎ ‎ ‎   
    
-| 73 | 54 | 5 | 64 | 8 |
+| 76 | 55 | 6 | 64 | 8 |
 |:---:|:---:|:---:|:---:|:---:|
-| **strategies tested** | **tombstoned** (74%) | **live** (MT5 paper) | **methodology lessons** | **-phase pipeline** |
+| **strategies tested** | **tombstoned** (72%) | **live** (MT5 paper) | **methodology lessons** | **-phase pipeline** |
    
  ‎ ‎ ‎  
    
-> **Reject rate: 74%.** Each tombstoned strategy ships with a post-mortem naming the failure mode. The few that survived the pipeline are the ones I trust.
+> **Reject rate: 72%.** Each tombstoned strategy ships with a post-mortem naming the failure mode. The few that survived the pipeline are the ones I trust.
 
 Every idea runs through the same 8 phases with kill criteria set *before* the backtest. Bad theses die in hours, not weeks. Survivors go to MT5 paper trading with a research-vs-live calibration loop ([`docs/RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md) is the rolling log of what each death taught).
 
@@ -54,20 +54,20 @@ Thresholds err on the strict side. A premature reject costs a tombstone doc. A f
 
 ### Live (MT5 VPS)
 
-5 strategies on MT5 paper. Mix of intraday breakout/fade and scheduled-macro-event drift, across GER40, NDX100, and XAUUSD. Per-strategy specifics (thesis, params, sizing, EA) are private.
+6 strategies on MT5 paper. Mix of intraday breakout/fade and scheduled-macro-event drift, across GER40, NDX100, and XAUUSD. Per-strategy specifics (thesis, params, sizing, EA) are private.
 
 Aggregate book metrics from the internal portfolio_risk_parity audit (inv-vol sizing, monthly rebal, [5%,35%] clip):
 
 | Metric | Equal-weight | Risk-parity | Realistic live (after blended haircut) |
 |---|---|---|---|
-| Annualized book Sharpe | +1.90 | **+2.33** | **+1.4 to +1.8** |
-| Book CAGR (at audit notional) | +2.74% | +2.70% | depends on live sizing — see below |
-| Book MDD (at audit notional) | -1.22% | -0.75% | -2% to -5% (1.5-3× research, regime/small-n) |
-| Time-in-DD | 86.22% | 82.55% | similar |
+| Annualized book Sharpe | +2.16 | **+2.67** | **+1.6 to +2.0** |
+| Book CAGR (at audit notional) | +2.87% | +2.94% | depends on live sizing — see below |
+| Book MDD (at audit notional) | -1.10% | -0.60% | -2% to -5% (1.5-3× research, regime/small-n) |
+| Time-in-DD | 83.4% | 79.2% | similar |
 | Cross-strategy max pairwise corr | all in [-0.15, +0.15] | same | < 0.30 expected live |
-| Regime stability (4-window Sh) | 4/4 positive | 4/4 positive lift (W1 +0.57, W2 +0.31, W3 +0.41, W4 +0.28) | holdout-positive ≠ live-positive; validate over 6-12 months |
+| Regime stability (4-window Sh, RP) | 4/4 positive | W1 +2.82 / W2 +1.74 / W3 +3.82 / W4 +2.48 | holdout-positive ≠ live-positive; validate over 6-12 months |
 
-All 5 strategies have been live less than 6 months. Total live trades across the book are still under ~200, so σ(realized Sharpe) ≈ 0.7 — the +1.4 to +1.8 column is a modeled prior, not a measurement. Year-one realized Sharpe will plausibly land anywhere in +1.0 to +2.0 on noise alone. Real validation horizon is 6-12 months of concurrent live data.
+All 6 strategies have been live less than 6 months. Total live trades across the book are still under ~200, so σ(realized Sharpe) ≈ 0.7 — the +1.6 to +2.0 column is a modeled prior, not a measurement. Year-one realized Sharpe will plausibly land anywhere in +1.2 to +2.4 on noise alone. Real validation horizon is 6-12 months of concurrent live data.
 
 Sizing tiers, validation gates, review cadence, and the honest fears list are in [`docs/BOOK_PLAN.md`](docs/BOOK_PLAN.md) (private).
 
@@ -77,7 +77,7 @@ Two strategies cleared Phases 2-7 but are broker-blocked: **treasury_trend** (no
 
 ### Rejected
 
-54 tombstoned strategies with documented post-mortems. Full table in [`docs/STATE_GRAVEYARD.md`](docs/STATE_GRAVEYARD.md). The patterns that recur — sign-inversion on post-2022 US-index MR, CFD-vs-cash-equity cost gaps, regime-decay on factor strategies — are written up as numbered lessons in [`RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md).
+55 tombstoned strategies with documented post-mortems. Full table in [`docs/STATE_GRAVEYARD.md`](docs/STATE_GRAVEYARD.md). The patterns that recur — sign-inversion on post-2022 US-index MR, CFD-vs-cash-equity cost gaps, regime-decay on factor strategies — are written up as numbered lessons in [`RESEARCH_NOTES.md`](docs/RESEARCH_NOTES.md).
 
 ---
 

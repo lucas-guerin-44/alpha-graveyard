@@ -79,6 +79,7 @@ memory/
 # their outputs) live under experiments/_live/. Rejected/methodology
 # experiments stay at experiments/<name>/ and remain public.
 experiments/_live/
+experiments/_ignore/
 # Personal review + private diagnostics
 experiments/book_review/
 experiments/portfolio_diagnostics/
