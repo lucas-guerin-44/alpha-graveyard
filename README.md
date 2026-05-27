@@ -4,9 +4,9 @@
    
  ‎ ‎ ‎   
    
-| 76 | 55 | 6 | 64 | 8 |
+| 77 | 55 | 7+1 | 64 | 8 |
 |:---:|:---:|:---:|:---:|:---:|
-| **strategies tested** | **tombstoned** (72%) | **live** (MT5 paper) | **methodology lessons** | **-phase pipeline** |
+| **strategies tested** | **tombstoned** (71%) | **live** (7 strict + 1 watchlist) | **methodology lessons** | **-phase pipeline** |
    
  ‎ ‎ ‎  
    
@@ -54,20 +54,20 @@ Thresholds err on the strict side. A premature reject costs a tombstone doc. A f
 
 ### Live (MT5 VPS)
 
-6 strategies on MT5 paper. Mix of intraday breakout/fade and scheduled-macro-event drift, across GER40, NDX100, and XAUUSD. Per-strategy specifics (thesis, params, sizing, EA) are private.
+7 strict-PASS strategies + 1 watchlist-paper-deploy (`pre_boj_drift`, half-size, C2/C5 re-clearance trigger by 2026-12-18). Mix of intraday breakout/fade, scheduled-macro-event drift, structural-flow (quarter-end rebalance), and pre-CB-event carry-maintain (USDJPY pre-BoJ) across GER40, NDX100, XAUUSD, and USDJPY. Per-strategy specifics (thesis, params, sizing, EA) are private.
 
 Aggregate book metrics from the internal portfolio_risk_parity audit (inv-vol sizing, monthly rebal, [5%,35%] clip):
 
 | Metric | Equal-weight | Risk-parity | Realistic live (after blended haircut) |
 |---|---|---|---|
-| Annualized book Sharpe | +2.16 | **+2.67** | **+1.6 to +2.0** |
-| Book CAGR (at audit notional) | +2.87% | +2.94% | depends on live sizing — see below |
-| Book MDD (at audit notional) | -1.10% | -0.60% | -2% to -5% (1.5-3× research, regime/small-n) |
-| Time-in-DD | 83.4% | 79.2% | similar |
+| Annualized book Sharpe | +2.19 | **+2.57** | **+1.6 to +2.0** |
+| Book CAGR (at audit notional) | +2.62% | +2.26% | depends on live sizing — see below |
+| Book MDD (at audit notional) | -0.99% | -0.63% | -2% to -5% (1.5-3× research, regime/small-n) |
+| Time-in-DD | 83.2% | 79.8% | similar |
 | Cross-strategy max pairwise corr | all in [-0.15, +0.15] | same | < 0.30 expected live |
-| Regime stability (4-window Sh, RP) | 4/4 positive | W1 +2.82 / W2 +1.74 / W3 +3.82 / W4 +2.48 | holdout-positive ≠ live-positive; validate over 6-12 months |
+| Regime stability (4-window Sh, RP) | 4/4 positive | W1 +2.58 / W2 +1.67 / W3 +3.85 / W4 +2.37 | holdout-positive ≠ live-positive; validate over 6-12 months |
 
-All 6 strategies have been live less than 6 months. Total live trades across the book are still under ~200, so σ(realized Sharpe) ≈ 0.7 — the +1.6 to +2.0 column is a modeled prior, not a measurement. Year-one realized Sharpe will plausibly land anywhere in +1.2 to +2.4 on noise alone. Real validation horizon is 6-12 months of concurrent live data.
+All 7 strategies have been live less than 6 months (newest `quarter_end_xau_short` 2026-05-27; first quarterly fire 2026-06-30). Total live trades across the book are still under ~200, so σ(realized Sharpe) ≈ 0.7 — the +1.6 to +2.0 column is a modeled prior, not a measurement. Year-one realized Sharpe will plausibly land anywhere in +1.2 to +2.4 on noise alone. Real validation horizon is 6-12 months of concurrent live data.
 
 Sizing tiers, validation gates, review cadence, and the honest fears list are in [`docs/BOOK_PLAN.md`](docs/BOOK_PLAN.md) (private).
 

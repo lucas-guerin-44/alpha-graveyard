@@ -357,11 +357,16 @@ def main() -> int:
     mh_ls_p_ret, mh_ls_p_stats = simulate_tsmom_pyramid(
         close, signal, realized_vol, atr, "MH-LS-P", long_only=False,
     )
+    # Direction null check (CLAUDE.md convention): same mechanism, flipped signal.
+    # If the inverted signal also makes money, the result is just gold beta,
+    # not a directional edge.
+    null_lo_ret, null_lo_stats = simulate_tsmom(close, -signal, realized_vol, "NULL-LO", long_only=True)
+    null_ls_ret, null_ls_stats = simulate_tsmom(close, -signal, realized_vol, "NULL-LS", long_only=False)
     bh_ret = ret.rename("XAU-buyhold")
 
     print(f"  {'variant':<22s} {'trades':>7s} {'frac-long':>11s} {'frac-short':>12s} "
           f"{'frac-flat':>11s} {'avg-|w|':>9s} {'max-|w|':>9s}")
-    for s in (mh_lo_stats, mh_lo_p_stats, mh_ls_stats, mh_ls_p_stats):
+    for s in (mh_lo_stats, mh_lo_p_stats, mh_ls_stats, mh_ls_p_stats, null_lo_stats, null_ls_stats):
         print(f"  {s['label']:<22s} {s['trades']:>7d} "
               f"{s['frac_long'] * 100:>10.1f}% {s['frac_short'] * 100:>11.1f}% "
               f"{s['frac_flat'] * 100:>10.1f}% {s['avg_gross_exposure']:>9.3f} "
@@ -374,6 +379,8 @@ def main() -> int:
     report_block("MH long-only + pyra", mh_lo_p_ret)
     report_block("MH long/short",       mh_ls_ret)
     report_block("MH long/short + pyra", mh_ls_p_ret)
+    report_block("NULL long-only (-sig)", null_lo_ret)
+    report_block("NULL long/short (-sig)", null_ls_ret)
     report_block("XAU buy & hold",      bh_ret)
 
     # ----- Pyramid sensitivity sweep (on MH-LO, best variant) ------------
@@ -420,7 +427,9 @@ def main() -> int:
     for lbl, r in (("MH long-only", mh_lo_ret),
                    ("MH long-only + pyra", mh_lo_p_ret),
                    ("MH long/short", mh_ls_ret),
-                   ("MH long/short + pyra", mh_ls_p_ret)):
+                   ("MH long/short + pyra", mh_ls_p_ret),
+                   ("NULL long-only (-sig)", null_lo_ret),
+                   ("NULL long/short (-sig)", null_ls_ret)):
         print(f"\n  -- {lbl} --")
         for wl, s, e in windows:
             report_block(wl, r.loc[s:e])
@@ -443,12 +452,29 @@ def main() -> int:
     check("MH long/short",         mh_ls_ret,   mh_ls_stats['trades'])
     check("MH long/short + pyramid", mh_ls_p_ret, mh_ls_p_stats['trades'])
 
+    # ----- Direction null check + B&H dominance check -----------------------
+    section("Direction null check + B&H dominance")
+    bh_sh = annualized_sharpe(bh_ret.to_numpy())
+    def fade_gap(label: str, sig_ret: pd.Series, null_ret: pd.Series) -> None:
+        sh_sig = annualized_sharpe(sig_ret.to_numpy())
+        sh_null = annualized_sharpe(null_ret.to_numpy())
+        gap = sh_sig - sh_null
+        beats_bh = sh_sig > bh_sh
+        def v(c: bool) -> str: return "PASS" if c else "FAIL"
+        print(f"  [{label}]")
+        print(f"    Sharpe vs -signal null  : sig {sh_sig:+.2f} vs null {sh_null:+.2f} -> gap {gap:+.2f}  ({v(gap > 0.30)})")
+        print(f"    Beats XAU buy-and-hold  : {v(beats_bh)}  (sig {sh_sig:+.2f} vs B&H {bh_sh:+.2f})")
+    fade_gap("MH long-only",   mh_lo_ret, null_lo_ret)
+    fade_gap("MH long/short",  mh_ls_ret, null_ls_ret)
+
     # ----- Summary ------------------------------------------------------
     section("Summary")
     for lbl, r, s in (("MH long-only",           mh_lo_ret,   mh_lo_stats),
                       ("MH long-only + pyra",    mh_lo_p_ret, mh_lo_p_stats),
                       ("MH long/short",          mh_ls_ret,   mh_ls_stats),
-                      ("MH long/short + pyra",   mh_ls_p_ret, mh_ls_p_stats)):
+                      ("MH long/short + pyra",   mh_ls_p_ret, mh_ls_p_stats),
+                      ("NULL long-only (-sig)",  null_lo_ret, null_lo_stats),
+                      ("NULL long/short (-sig)", null_ls_ret, null_ls_stats)):
         eq = (1.0 + r).cumprod()
         years = (r.index[-1] - r.index[0]).days / 365.25
         total = float(eq.iloc[-1] - 1.0)
