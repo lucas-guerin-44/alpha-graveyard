@@ -20,7 +20,7 @@ Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD
 | Pending Phase 2 | 0 | (none — `gold_trend` REJECTED 2026-05-27) |
 | Watch-list | 0 | |
 | **Portfolio overlay — PASS** | 1 | **`portfolio_risk_parity` (inv-vol sizing across 10 components; re-audited 2026-05-27 with `quarter_end_xau_short` as 10th, sparse-cap policy tightened to 25% — book Sh **+2.19 EQ → +2.57 RP** (+0.37 lift), 4/4 regimes positive; deploy = static quarterly EA sizing review)** |
-| Diagnostic studies (no deploy path) | 1 | `regime_hurst_diagnostic` (MARGINAL — TSMOM-side only) |
+| Diagnostic studies (no deploy path) | 2 | `regime_hurst_diagnostic` (MARGINAL — TSMOM-side only); **`regime_classifier_diagnostic`** (methodology validated, 2 v2 Phase 2 attempts REJECT-marginal at current n; queued for ~2027-2028 re-evaluation when sample sizes grow) |
 | Institutional-only | 3 | `fx_session` (retail RT cost eats edge); `xag_session` (Eightcap XAG 8bp spread eats Variant C gross); `xpt_session` (Eightcap XPT Asia 23bp spread; killed without Phase 2 — cost ceiling decisive) |
 | Rejected | 66 | → [STATE_GRAVEYARD.md](STATE_GRAVEYARD.md) |
 | Deploy-paper ready (Phase 2-3 PASS) | 0 | |

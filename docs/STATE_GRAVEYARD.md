@@ -8,7 +8,7 @@ Active state → [STATE.md](STATE.md). Lessons → [RESEARCH_NOTES.md](RESEARCH_
 
 ---
 
-## Intraday CFD (35)
+## Intraday CFD (37)
 
 | name | verdict | killed | Sh full / holdout | dir-gap | load-bearing failure mode | date |
 |---|---|---|---|---|---|---|
@@ -47,8 +47,10 @@ Active state → [STATE.md](STATE.md). Lessons → [RESEARCH_NOTES.md](RESEARCH_
 | pre_xau_macro_drift | REJECT (whole book) | Phase 2 | FOMC +0.31 / CPI +0.54 / RS +0.28 / NFP +0.36 | all FAIL (+0.18 to +0.26) | XAU drifts symmetrically; placebo ≥ event drift (gold bull regime confound) | 2026-05-25 |
 | [usdjpy_tokyo_fix](../experiments/usdjpy_tokyo_fix/usdjpy_tokyo_fix.md) | REJECT | Phase 0b | DOW-mapped gross -1.337 bps | n/a | Pre-committed Mon/Tue SHORT direction inverted (all weekdays t=+8.03 LONG) | 2026-05-26 |
 | [post_fomc_amateur_fade](../experiments/post_fomc_amateur_fade/post_fomc_amateur_fade.md) | REJECT | Phase 0 | +3.84 bps gross / W3 -0.36 | n/a | Gross < +5 bps floor; 0DTE/HFT closes the T+15-T+60 imbalance | 2026-05-26 |
-| [month_end_usd_short](../experiments/month_end_usd_short/month_end_usd_short.md) | REJECT | Phase 2 (7/13) | basket +0.85 bp / W3 +0.93 bp | dir-gap +0.45 | Mechanism real (EUR+GBP co-direct W3, placebo clean) but magnitude/cost ratio ~1.5× sub-threshold for retail FX; VALIDATED_BLOCKED_AT_COST shape; deploys at PB-FX < 0.5bp; new lesson #75 — screen criterion needs ≥3× cost-floor, not just > 0 | 2026-05-27 |
-| [last_hour_month_end_ndx](../experiments/last_hour_month_end_ndx/last_hour_month_end_ndx.md) | REJECT | Phase 2 (7/13) | best-dir SHORT +3.57 bp / W3 +3.52 bp | dir-gap +0.18 | **W2 2021-2022 sign-flip** (SHORT −5.17 / LONG +4.67) — funding-pressure (SHORT) dominates in tight-money regimes (W1+W3); turn-of-month LONG dominates in QE/pandemic regime (W2). Direction-lock criterion #13 caught the regime-conditional instability. Deployable shape exists as regime-gated v2 thesis with explicit Fed-policy gate; new lesson #74 — monetary-regime conditional direction inversion now documented across (a) Mag7 earnings, (b) US-index intraday MR, (c) month-end equity rebal | 2026-05-27 |
+| [month_end_usd_short](../experiments/month_end_usd_short/month_end_usd_short.md) | REJECT | Phase 2 (7/13) | basket +0.85 bp / W3 +0.93 bp | dir-gap +0.45 | Magnitude/cost ratio ~1.5× sub-threshold for retail FX (cost-blocked, not signal-absent); VALIDATED_BLOCKED_AT_COST. Lesson #75. | 2026-05-27 |
+| [last_hour_month_end_ndx](../experiments/last_hour_month_end_ndx/last_hour_month_end_ndx.md) | REJECT | Phase 2 (7/13) | best-dir SHORT +3.57 bp / W3 +3.52 bp | dir-gap +0.18 | **W2 2021-2022 sign-flip** (SHORT −5.17 / LONG +4.67) — regime-conditional direction inversion via QE-on/off. Lesson #74. | 2026-05-27 |
+| [xau_session_v2_ffr_gated](../experiments/xau_session_v2_ffr_gated/xau_session_v2_ffr_gated.md) | REJECT | Phase 2 (9-10/11) | v2a +1.11 / v2b +1.08 (parent +0.79) | n/a | Fail crit #1 (Sh ≥ +1.20) by 0.10; +1.20 bar over-calibrated to active-aware diagnostic. Lesson #76. | 2026-05-27 |
+| [last_hour_month_end_ndx_v2_vix_gated](../experiments/last_hour_month_end_ndx_v2_vix_gated/last_hour_month_end_ndx_v2_vix_gated.md) | REJECT | Phase 2 (8/10) | CALM-gated SHORT +0.64 (parent +0.29) | dir-gap +0.84 | Fail crit #10 (deflated Sh +0.04 vs +0.20) at n=17. Lesson #76. | 2026-05-27 |
 
 ## Single-stock equity (8)
 
