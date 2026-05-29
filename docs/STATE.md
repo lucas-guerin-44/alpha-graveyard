@@ -13,7 +13,7 @@ Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD
 
 | Status | Count | Names |
 |---|---|---|
-| Live (MT5 VPS) | **7** | one book, per-strategy detail private (`experiments/_live/`, `live_tracking/`); posture → [BOOK_PLAN.md](BOOK_PLAN.md) |
+| Live (MT5 VPS) | **9** | one book, per-strategy detail private (`experiments/_live/`, `live_tracking/`); posture → [BOOK_PLAN.md](BOOK_PLAN.md). Newest: `ndx_trend_day` (tail-convex overlay, paper, 2026-05-29) |
 | Validated, blocked at broker | 3 | `treasury_trend` (no bonds), `softs_ensemble` (Eightcap subset fails), `pead_midcap` (CFD-swap-cost) |
 | Keep-for-reference | 3 | `tsmom`, `btc_trend`, `btc_intraday` |
 | Portfolio overlay — PASS | 1 | `portfolio_risk_parity` (quarterly sizing review) |
@@ -26,7 +26,7 @@ Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD
 
 ## LIVE BOOK
 
-**7 strategies live on MT5 VPS** as of 2026-06-01. Per-strategy thesis, mechanism, instrument, params, sizing, and live tracking are deliberately **not** in this committed doc, they live in `experiments/_live/<name>/`, `live_tracking/<name>.md`, and `deploy/` (all gitignored). **The book is the unit that matters here, not the legs.** Book-level posture, sizing tiers, validation gates, and expected results → [BOOK_PLAN.md](BOOK_PLAN.md).
+**9 strategies live on MT5 VPS** as of 2026-06-01 (`holiday_calendar` deployed 2026-05-28; `ndx_trend_day` tail-convex overlay deployed 2026-05-29). Per-strategy thesis, mechanism, instrument, params, sizing, and live tracking are deliberately **not** in this committed doc, they live in `experiments/_live/<name>/`, `live_tracking/<name>.md`, and `deploy/` (all gitignored). **The book is the unit that matters here, not the legs.** Book-level posture, sizing tiers, validation gates, and expected results → [BOOK_PLAN.md](BOOK_PLAN.md).
 
 ---
 
@@ -61,9 +61,9 @@ Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD
 
 ## PORTFOLIO OVERLAYS
 
-### `portfolio_risk_parity` — PASS (re-audit 2026-05-29, post-tz-fix 9-comp book incl. global_settlement_short)
-- Inv-vol sizing overlay: EQ Sh +0.56 → **RP +0.78** (lift +0.23); MDD -3.39% → -1.66%; **4/4 regimes positive** (RP W1 +0.60 / W2 +0.15 / W3 +1.65 / W4 +1.08). Deploy as **quarterly sizing review** (static inv-vol gives the lift; sparse strategies capped 25%). `global_settlement_short` ~0-corr to all legs → lifted book RP Sh +0.61→+0.78
-- Book-yearly w/ per-strategy sizing: total +113.3% / CAGR +24.98% / Sh +2.63 / MDD -3.68% / Calmar +6.78 (since 2023). Methodology + weights private
+### `portfolio_risk_parity` — PASS (re-audit 2026-05-29, post-tz-fix 11-comp book incl. ndx_trend_day)
+- Inv-vol sizing overlay: EQ Sh +0.97 → **RP +1.14** (lift +0.17); MDD -2.74% → -1.45%; **4/4 regimes positive** (RP W1 +0.28 / W2 +1.07 / W3 +2.52 / W4 +1.19 — `ndx_trend_day` overlay lifts the weakest W1). Deploy as **quarterly sizing review** (sparse strategies capped 25%; ndx_trend_day high-vol → inv-vol weights it ~5%)
+- Book-yearly w/ per-strategy sizing: total +127.96% / CAGR +27.45% / Sh +2.60 / MDD -3.69% / Calmar +7.44 (since 2023). Methodology + weights private
 
 ---
 

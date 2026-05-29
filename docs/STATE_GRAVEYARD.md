@@ -8,10 +8,13 @@ Active state → [STATE.md](STATE.md). Lessons → [RESEARCH_NOTES.md](RESEARCH_
 
 ---
 
-## Intraday CFD (47)
+## Intraday CFD (50)
 
 | name | verdict | killed | Sh full / holdout | dir-gap | load-bearing failure mode | date |
 |---|---|---|---|---|---|---|
+| [japan_quarter_end_short](../experiments/structural_flow_audit/japan_quarter_end_deepdive.py) | REJECT | Phase 0 deep-dive | +0.36 / **W3 -0.46** | +0.86 | Q-end Tokyo-close SHORT worked pre-2022 (W1 +14/W2 +12 bp) but W3 inverts (-6 bp); placebo-clean, deflated -0.14 — post-2022 decay. | 2026-05-29 |
+| [ndx_vol_breakout](../experiments/ndx_vol_breakout/ndx_vol_breakout.md) | REJECT (tail-purpose) | Phase 1/2 | +0.71 / W3 +1.38 | +1.69 | Standalone-OK but corr→book +0.39 & −33.6bp on book's worst days (tail-CONCAVE). Late break-confirm eats reversal-day whipsaws; vs ndx_trend_day's early-commit tail-convex. Entry timing flips tail-sign. | 2026-05-29 |
+| [safe_haven_riskoff](../experiments/safe_haven_riskoff/safe_haven_riskoff.md) | REJECT | Phase 1/2 | XAU -0.23 / JPY -2.77 / CHF -0.60 | n/a | Cross-asset haven hedge regime-broken post-2022: gold placebo-fail, long-JPY loses (re-confirms #35), CHF tail-sign-OK but net-neg+thin. Hedge equity tail via equity-continuation, not havens. | 2026-05-29 |
 | [jpn225_orb](../experiments/jpn225_orb/jpn225_orb.md) | REJECT | Phase 0b C1 gate | CONT +0.52 zc / W3 +0.68 | +1.04 | Real opening-momentum but C1 delta +0.28<+0.40 — all-session not TSE-open-specific; ORB 0-for-7 outside DAX. | 2026-05-28 |
 | [jpn225_lunch_fade](../experiments/jpn225_lunch_fade/jpn225_lunch_fade.md) | REJECT | Phase 0/1 (C1 gate) | -0.03 / W3 +0.05 | +0.00 | C1 delta +0.27<+0.40 & dir-gap 0; formal cash halt ≠ continuous-lull, removes basis-arb leg (refines #8/#27). | 2026-05-28 |
 | [orb_asx200](../experiments/orb_asx200/orb_asx200.md) | REJECT | Phase 0/1 | +0.04 / **W3 -0.62** | n/a | One-window-wonder (W1 +1.37 only); ASX commodity/financials-heavy like FTSE — ORB still DAX-only (6th non-DAX ORB reject). | 2026-05-28 |
