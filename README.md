@@ -1,4 +1,4 @@
-# quant-strategies-research
+# alpha-graveyard
 
 **A pipeline for killing bad trading-strategy ideas fast (and running the few that survive)**
    
@@ -120,7 +120,7 @@ Broker asset access is wide: FX, index CFDs, single-stock CFDs, commodity CFDs, 
 ## Repo layout
 
 ```
-quant-strategies-research/
+alpha-graveyard/
 ├── experiments/             # One subdir per strategy (thesis .md + demo/validation .py)
 │   ├── <rejected>/               # ~30 tombstoned experiments — the public examples of the pipeline
 │   ├── treasury_trend/           # Validated Phases 2-7, broker-blocked
@@ -161,7 +161,7 @@ Expects [`backtesting-engine-2.0`](../backtesting-engine-2.0/) as a sibling dire
 ```
 finance/
 ├── backtesting-engine-2.0/    ← the engine (event-driven core)
-└── quant-strategies-research/ ← this repo (thesis docs, demos, deploy)
+└── alpha-graveyard/          ← this repo (thesis docs, demos, deploy)
 ```
 
 Python 3.11+ recommended. From this repo's root:
