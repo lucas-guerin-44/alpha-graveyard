@@ -124,6 +124,21 @@ OUTPUT_COLUMNS = [
 ]
 
 
+def _utc_to_broker_clock(dt: datetime) -> datetime:
+    """Re-express a UTC instant so MT5's range filter matches real-UTC intent.
+
+    MT5 stores each bar's `time` as broker-wall-clock-tagged-as-UTC (see module
+    docstring: a real-UTC 07:00 bar on a +3 broker keys at posix(10:00-as-UTC)).
+    `copy_rates_range` filters bars via ``bound.timestamp()``, so to request "up
+    to real-UTC instant X" we must hand it a datetime whose ``.timestamp()`` equals
+    posix of X's broker wall-clock-as-UTC. Build that by shifting the wall-clock to
+    ``BROKER_TZ`` (DST-correct) then re-tagging the result as UTC.
+    """
+    ts = pd.Timestamp(dt)
+    ts = ts.tz_localize("UTC") if ts.tz is None else ts.tz_convert("UTC")
+    return ts.tz_convert(BROKER_TZ).tz_localize(None).tz_localize("UTC").to_pydatetime()
+
+
 def fetch_bars(symbol: str, tf_code: str, start: datetime, end: datetime) -> pd.DataFrame:
     """Pull bars from MT5 and shape them into the datalake schema.
 
@@ -134,7 +149,15 @@ def fetch_bars(symbol: str, tf_code: str, start: datetime, end: datetime) -> pd.
         code, msg = mt5.last_error()
         raise RuntimeError(f"symbol_select({symbol}) failed: [{code}] {msg}")
 
-    rates = mt5.copy_rates_range(symbol, tf_code_to_mt5(tf_code), start, end)
+    # MT5 stores each bar's `time` as broker-local-wall-clock-as-int (see module
+    # docstring). `copy_rates_range` compares the from/to bounds against that same
+    # broker-wall-clock scale, so a UTC-tagged bound is interpreted `offset` hours
+    # early (e.g. 10:40 UTC -> bars only up to broker-clock 10:40 = 07:40 UTC in
+    # summer EEST), silently clipping the most-recent `offset` hours. Re-express the
+    # bounds as broker wall-clock (DST-correct) so the range matches real-UTC intent.
+    start_b = _utc_to_broker_clock(start)
+    end_b = _utc_to_broker_clock(end)
+    rates = mt5.copy_rates_range(symbol, tf_code_to_mt5(tf_code), start_b, end_b)
     if rates is None or len(rates) == 0:
         return pd.DataFrame(columns=OUTPUT_COLUMNS)
 

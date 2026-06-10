@@ -42,13 +42,13 @@ exports/
 # Notebooks (if we start using them)
 .ipynb_checkpoints/
 
-/docs/vps_connect.md
-
 # Live deployment artifacts (MT5 EAs, QC algos) — not published
 deploy/
 /docs/mq5_deploy.md
 /docs/BOOK_PLAN.md
 /docs/RESEARCH_NOTES.md   # methodology lessons name live-strategy mechanisms/sessions — private (2026-05-29)
+/docs/vps_connect.md
+/docs/vps_logs.md
 
 # Opinionated per-collaborator working notes
 CLAUDE.md
@@ -74,9 +74,6 @@ Trades Report*
 # Memory / agent state (in case ever moved into-repo)
 memory/
 .memory/
-
-# Sibling repo ref doc — personal notes, not part of this repo's deliverable
-/docs/backtesting-engine-2.0.md
 
 # Live / deployed-strategy research — edge-bearing, never publish.
 # All currently-live strategies + the portfolio overlay (which depends on

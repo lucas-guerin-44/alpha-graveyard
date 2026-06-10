@@ -3,9 +3,8 @@
 **Where are we now, and what's been done.** Index of every experiment with verdict + headline numbers — **truth is in the linked thesis docs**, keep entries terse.
 Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD.md](STATE_GRAVEYARD.md). Live-book posture → [BOOK_PLAN.md](BOOK_PLAN.md).
 
-- **Live** = MT5 VPS only (private). QC retired 2026-05.
+- **Live** = MT5 VPS only (private)
 - **Tradeability**: datalake M5 ⇒ broker-confirmed; D1-only ⇒ verify via `scripts/mt5_fetch.py --list-symbols`.
-- **TZ-FIX (2026-05-28)**: pre-fix "research" Sharpes were on 3h-shifted bars (lesson #80). Deployed strategies' validated numbers are in their thesis-doc TZ-FIX banners; live EAs are UTC-explicit or reconfigured to the shifted session.
 
 ---
 
@@ -13,20 +12,20 @@ Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD
 
 | Status | Count | Names |
 |---|---|---|
-| Live (MT5 VPS) | **9** | one book, per-strategy detail private (`experiments/_live/`, `live_tracking/`); posture → [BOOK_PLAN.md](BOOK_PLAN.md). Newest: `ndx_trend_day` (tail-convex overlay, paper, 2026-05-29) |
+| Live (MT5 VPS) | **9** | one book, per-strategy detail private (`experiments/_live/`, `live_tracking/`); posture → [BOOK_PLAN.md](BOOK_PLAN.md). |
 | Validated, blocked at broker | 3 | `treasury_trend` (no bonds), `softs_ensemble` (Eightcap subset fails), `pead_midcap` (CFD-swap-cost) |
 | Keep-for-reference | 3 | `tsmom`, `btc_trend`, `btc_intraday` |
 | Portfolio overlay — PASS | 1 | `portfolio_risk_parity` (quarterly sizing review) |
 | Diagnostic (no deploy path) | 2 | `regime_hurst_diagnostic` (MARGINAL); `regime_classifier_diagnostic` (queued ~2027) |
 | Institutional-only | 3 | `fx_session`, `xag_session`, `xpt_session` |
-| Rejected | 82 | → [STATE_GRAVEYARD.md](STATE_GRAVEYARD.md) |
-| **Total** | **101** | |
+| Rejected | 92 | → [STATE_GRAVEYARD.md](STATE_GRAVEYARD.md) |
+| **Total** | **111** | |
 
 ---
 
 ## LIVE BOOK
 
-**9 strategies live on MT5 VPS** as of 2026-06-01 (`holiday_calendar` deployed 2026-05-28; `ndx_trend_day` tail-convex overlay deployed 2026-05-29). Per-strategy thesis, mechanism, instrument, params, sizing, and live tracking are deliberately **not** in this committed doc, they live in `experiments/_live/<name>/`, `live_tracking/<name>.md`, and `deploy/` (all gitignored). **The book is the unit that matters here, not the legs.** Book-level posture, sizing tiers, validation gates, and expected results → [BOOK_PLAN.md](BOOK_PLAN.md).
+**9 strategies live on MT5 VPS** as of 2026-06-01 (`holiday_calendar` deployed 2026-05-28; `ndx_trend_day` tail-convex overlay deployed 2026-05-29; `global_settlement_short` settlement-flow basket live-confirmed 2026-05-30 at EA-default flat 0.50%/leg, first fires 2026-06-12 SQ / 06-19 witch). Per-strategy thesis, mechanism, instrument, params, sizing, and live tracking are deliberately **not** in this committed doc, they live in `experiments/_live/<name>/`, `live_tracking/<name>.md`, and `deploy/` (all gitignored). **The book is the unit that matters here, not the legs.** Book-level posture, sizing tiers, validation gates, and expected results → [BOOK_PLAN.md](BOOK_PLAN.md).
 
 ---
 
@@ -62,49 +61,8 @@ Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD
 ## PORTFOLIO OVERLAYS
 
 ### `portfolio_risk_parity` — PASS (re-audit 2026-05-29, post-tz-fix 11-comp book incl. ndx_trend_day)
-- Inv-vol sizing overlay: EQ Sh +0.97 → **RP +1.14** (lift +0.17); MDD -2.74% → -1.45%; **4/4 regimes positive** (RP W1 +0.28 / W2 +1.07 / W3 +2.52 / W4 +1.19 — `ndx_trend_day` overlay lifts the weakest W1). Deploy as **quarterly sizing review** (sparse strategies capped 25%; ndx_trend_day high-vol → inv-vol weights it ~5%)
+- Inv-vol sizing overlay (corrected 2026-05-30 window audit; prior +0.97→+1.14 was on stale cash windows for orb/lunch/xau): EQ Sh **+1.75** → **RP +1.99** (lift +0.24); MDD -1.43% → -0.76%; 4/4 regimes positive. Deploy as **quarterly sizing review** (sparse strategies capped 25%; ndx_trend_day high-vol → inv-vol weights it ~5%)
 - Book-yearly w/ per-strategy sizing: total +127.96% / CAGR +27.45% / Sh +2.60 / MDD -3.69% / Calmar +7.44 (since 2023). Methodology + weights private
-
----
-
-## CROSS-EXPERIMENT PATTERNS
-
-One-line index; full detail in [RESEARCH_NOTES.md](RESEARCH_NOTES.md) and the linked thesis docs.
-
-34. **Forced-flow calendar mechanisms port across jurisdictions by settlement-timing, not clock; event-vs-generic-calendar is the placebo** (`jpn225_sq_open_short`; #87)
-33. **A validated multi-instrument ensemble doesn't survive restriction to the broker-tradeable subset** when robustness lived in un-tradeable names (`softs_ensemble` Eightcap cut; #86)
-32. **Crypto perp funding-fade is correctly signed but institutionalised to ~0 post-2022** (`crypto_funding_fade`; #85)
-31. **Single-instrument retail-CFD TSMOM needs B&H + null-check as Phase-0 gates** — kill criteria hide passive-beta (`gold_trend`; #73)
-30. **Structural-flow calendar audit is a productive idea-source** (~1 candidate / 17 cells) (`structural_flow_audit`; #72)
-29. **"Institutional-absence" ≠ edge; the fill-flow can sign-invert W2→W3** (`retail_overshoot_fade`)
-28. **Capacity-moat is a deploy-prerequisite, not a predictor** (`cfd_wed_rollover_eurusd`)
-27. **DXY-mechanical-mirror confirmed across pass- and fail-primary vessels; FX-side event legs pre-tombstoned** (`pre_ecb_drift_eurusd`)
-26. **FX has independent pre-CB flow only with no equity-primary AND modal-non-event; direction = carry-MAINTAIN** (`pre_boj_drift`; #54)
-25. **Secondary cross-asset vessels are magnitude-shadows of the primary, decay first** (`pre_fomc_drift`)
-24. **TF×window is 2-D; wider windows extract only at coarser TF (M-shape)** (`xau_break_retest_h1`)
-23. **Intraday-microstructure edge doesn't auto-transfer across sessions on the same instrument** (`xau_ldn_am_fade`)
-22. **Scheduled US-macro LONG drift is first-read / mid-month / mid-cycle specific** (`pre_pce_drift`; #62)
-21. **Macro-event-drift doesn't port from index-on-US-macro to commodity-on-own-fundamental** (`pre_natgas_eia`; #61)
-20. **OPEX-pin family fully tombstoned for US equities** (0DTE leaked to non-Mag7 single stocks) (`opex_pin_singlestock`)
-19. **PEAD direction-inversion is Mag7-specific, not market-wide**; concurrent-position curve is the MDD diagnostic for HOLD≥10d (`pead_midcap`)
-18. **Hurst regime classifier: useful for TSMOM, dead for MR/fade post-2023** (`regime_hurst_diagnostic`)
-17. **Lunch-fade is index-cash-vs-futures-basis-arb specific, not basket-generalizable** (`single_stock_lunch_fade`)
-16. **Mag7 earnings mechanism flips sign at 2022/23 (regime-conditional)** (`earnings_continuation_mag7`)
-15. **Single-stock earnings-fade survives on low-0DTE-OI large-caps, arbed on Mag7** (`earnings_fade`)
-14. **Monthly-OPEX pin-fade dead on US-index M5 post-0DTE** (`opex_pin_fade`)
-13. **Sentiment intuition mirror-inverts on opening-impulse strategies** (`orb_dax_sentiment`)
-12. **Asian-session-handoff not auto-transferable across 24/7 instruments** (XAU activates / WTI reverses)
-11. **BTC: pre-commit W4 as binding; pre-2022-only edges aren't deployable**
-10. **BTC institutionalization acts in mirror image across mechanism families** (degrades TSMOM, activates weekend-DOW)
-9. **Walk-forward Phase 6 catches parabola-V vulnerabilities single-split misses** (TSMOM-family)
-8. **US/EU index intraday "fade overshoot" keeps sign-inverting** — lunch-fade is the only exception
-7. **Holdout (2023-26) as 0DTE-amplification proxy** for US-index intraday MR
-6. **CFD overnight/gap theses must be validated on real futures first** (DAX +0.80 → FDAX -0.34)
-5. **"Public-info intraday drift" needs continuous-trading publication + one-venue basket**
-4. **Gap-direction effect is venue-specific** (DAX continues / NDX fades)
-3. **Cost-zero Sharpe diagnostic**: ≈0 → no signal; ≫0 w/ linear collapse → edge eaten by spread
-2. **Generic intraday triggers on NDX M5 don't survive friction**; time-of-day-structural can
-1. **Research-to-live haircut is confound-specific (~10-25% rel. for this book), not a generic multiplier** (#5)
 
 ---
 
@@ -113,7 +71,7 @@ One-line index; full detail in [RESEARCH_NOTES.md](RESEARCH_NOTES.md) and the li
 **On experiment close:**
 1. Verdict + numbers into `experiments/<name>/<name>.md` (truth lives there).
 2. 4-line entry here (active) or one row in [STATE_GRAVEYARD.md](STATE_GRAVEYARD.md) (REJECT). Graveyard failure-mode column: one sentence (≤120 chars), no bold.
-3. Cross-experiment pattern → lesson in [RESEARCH_NOTES.md](RESEARCH_NOTES.md) + 1-line above.
+3. Cross-experiment pattern → numbered lesson in [RESEARCH_NOTES.md](RESEARCH_NOTES.md) (canonical home for meta-rules; do NOT duplicate an index here).
 4. Memory: only cross-experiment patterns + user prefs + conventions.
 
 **On graduating to DEPLOYED (paper or real):**
