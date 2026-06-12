@@ -8,7 +8,7 @@ The point of kill criteria up front is to avoid the "sunk cost" trap, every hour
 
 ## Phase 1, Thesis (before writing any code)
 
-Write a one-page thesis document at `research/<strategy_name>.md` **before implementation**. Contents:
+Write a one-page thesis document at `experiments/<strategy_name>/<strategy_name>.md` **before implementation**. Contents:
 
 1. **Mechanism**: what market phenomenon does this try to capture? (e.g. "investor under-reaction to slow-moving news", "currency carry persistence", "post-earnings drift")
 2. **Why retail-accessible**: why hasn't this been fully arbitraged at our scale/timeframe?
@@ -27,7 +27,7 @@ Write a one-page thesis document at `research/<strategy_name>.md` **before imple
 
 ## Phase 2, Minimum-viable implementation
 
-Single-file pandas/numpy simulation in `experiments/<strategy_name>/<strategy_name>_demo.py` OR a Strategy subclass in `research/<strategy_name>.py` (if it fits the event-driven engine interface).
+Single-file pandas/numpy simulation in `experiments/<strategy_name>/<strategy_name>_demo.py`.
 
 Keep it brutally simple:
 - One universe (no subsetting)
@@ -139,15 +139,15 @@ If the strategy survives through Phase 6, measure correlation of daily returns v
 
 Only reached if all prior phases pass.
 
-1. **Port to QuantConnect** (`deploy/qc_<strategy_name>.py`), same strategy, same params, QC-compatible instrument universe (may require ETF substitutions).
+1. **Port to MT5 EA** (`deploy/mq5/ea/<strategy_name>.mq5` for trading strategies, `deploy/mq5/services/<name>.mq5` for utility EAs).
 2. **Backtest on QC**, confirm results match research within ~20%. Gaps usually come from universe differences or realistic costs. Document the gap.
 3. **Paper trade 3-6 months**, real-time fills, real slippage, no capital at risk. Compare live equity curve to QC backtest.
 4. **Go live small**, start at 10-20% of intended size. Monitor first drawdown carefully; psychology is the real failure mode.
 
 ### Kill criteria at Phase 8
 
-- **QC backtest Sharpe < 50% of research Sharpe** → investigate before deploying. The universe/cost gap is eating the edge.
-- **Paper trade diverges > 30% from QC backtest over 3 months** → something structural (timing, fills, data) is wrong. Don't go live.
+- **MT5 backtest Sharpe < 50% of research Sharpe** → investigate before deploying. The universe/cost gap is eating the edge.
+- **Paper trade diverges > 30% from MT5 backtest over 3 months** → something structural (timing, fills, data) is wrong. Don't go live.
 - **First live drawdown > research max DD × 1.5** → strategy is operating in a worse regime than training. Pause and re-validate.
 
 ---
@@ -162,7 +162,7 @@ Phase 4 Regime          → positive in ≤2/4 windows / one-window-dominance
 Phase 5 Param sens.     → Sharpe -50% on ±20% param / goes negative in range
 Phase 6 True holdout    → OOS Sharpe ≤ 0 / degradation > 0.5
 Phase 7 Correlation     → corr ≥ 0.6 with existing live strategies
-Phase 8 Live            → QC Sharpe < 50% research / paper divergence > 30%
+Phase 8 Live            → MT5 Sharpe < 50% research / paper divergence > 30%
 ```
 
 Each phase that kills a strategy saves the hours you would have spent on the next one.
@@ -173,15 +173,14 @@ Each phase that kills a strategy saves the hours you would have spent on the nex
 
 | Kind | Location | Pattern |
 |---|---|---|
-| Thesis doc | `research/<name>.md` or `experiments/<name>/<name>.md` | One page, pre-implementation |
-| Strategy class (event-driven) | `research/<name>.py` | Subclass of engine's `Strategy` |
+| Thesis doc | `experiments/<name>/<name>.md` | One page, pre-implementation |
 | Experiment sim (standalone) | `experiments/<name>/<name>_demo.py` | Pandas/numpy loop |
 | Validation run | `experiments/<name>/<name>_validation.py` | Runs the phases above |
 | Re-baseline after param search | `experiments/<name>/<name>_rebaseline.py` | IS-only grid search + honest holdout |
-| Live algorithm | `deploy/qc_<name>.py` | QuantConnect-compatible |
+| Live algorithm (trading) | `deploy/mq5/ea/<name>.mq5` | MT5 EA |
 | Data fetchers | `scripts/*.py` | CSV cache into `ohlc_data/` |
 | Narrative | `docs/RESEARCH_NOTES.md` | Rolling log of what's been tried and learned |
-| Vectorized signal fns (optional, for speed) | `research/vectorized/<name>.py` | Pure numpy→numpy function |
+| Vectorized signal fns (optional, for speed) | `experiments/<name>/` | Pure numpy→numpy function |
 
 ---
 
@@ -194,7 +193,7 @@ When a research strategy starts needing thousands of parameter-sweep backtests, 
 Put the vectorized signal function in the research repo (not in `backtesting/vectorized_signals.py`), then feed its output arrays to the engine's runner.
 
 ```python
-# research/vectorized/tsmom.py
+# experiments/tsmom/tsmom_signals.py
 import numpy as np
 from backtesting.indicators import atr_array  # engine primitives are fair game
 
@@ -208,7 +207,7 @@ Usage in an experiment:
 
 ```python
 from backtesting.vectorized import VectorizedBacktester
-from research.vectorized.tsmom import tsmom_signals
+from experiments.tsmom.tsmom_signals import tsmom_signals
 
 entries, sides, stops, tps = tsmom_signals(o, h, lo, c, lookback_bars=252)
 eq = VectorizedBacktester(o, h, lo, c, starting_cash=100_000).run(

@@ -44,11 +44,10 @@ exports/
 
 # Live deployment artifacts (MT5 EAs, QC algos) — not published
 deploy/
-/docs/mq5_deploy.md
 /docs/BOOK_PLAN.md
 /docs/RESEARCH_NOTES.md   # methodology lessons name live-strategy mechanisms/sessions — private (2026-05-29)
-/docs/vps_connect.md
-/docs/vps_logs.md
+
+/docs/vps/
 
 # Opinionated per-collaborator working notes
 CLAUDE.md

@@ -4,13 +4,13 @@
    
  ‎ ‎ ‎   
    
-| 101 | 82 | 9 | 87 | 8 |
+| 111 | 92 | 9 | 100 | 8 |
 |:---:|:---:|:---:|:---:|:---:|
-| **strategies tested** | **tombstoned** (81%) | **live** | **methodology lessons** | **-phase pipeline** |
+| **strategies tested** | **tombstoned** (83%) | **live** | **methodology lessons** | **-phase pipeline** |
    
  ‎ ‎ ‎  
    
-> **Reject rate: 81%.** Each tombstoned strategy ships with a post-mortem naming the failure mode. The few that survived the pipeline are the ones I trust.
+> **Reject rate: 83%.** Each tombstoned strategy ships with a post-mortem naming the failure mode. The few that survived the pipeline are the ones I trust.
 
 Every idea runs through the same 8 phases with kill criteria set *before* the backtest. Bad theses die in hours, not weeks. Survivors go to MT5 paper trading with a research-vs-live calibration loop ([`docs/STATE_GRAVEYARD.md`](docs/STATE_GRAVEYARD.md) is the public log of each death and its failure mode).
 
@@ -50,7 +50,7 @@ Built on [`backtesting-engine-2.0`](https://github.com/lucas-guerin-44/backtesti
 | Why did *X* fail? (public post-mortems) | [`docs/STATE_GRAVEYARD.md`](docs/STATE_GRAVEYARD.md) |
 | What have we learned (cross-experiment)? | `docs/RESEARCH_NOTES.md` (numbered lessons — **private/local-only**; names live mechanisms) |
 | Live-book posture (sizing tiers, gates, cadence, fears) | `docs/BOOK_PLAN.md` (**private**) |
-| Deploy an EA / connect to the VPS | `docs/mq5_deploy.md`, `docs/vps_connect.md` (**private**) |
+| Deploy an EA / connect to the VPS | [`docs/vps/index.md`](docs/vps/index.md) — SSH, deploy, logs, monitoring (**private**) |
 | How an agent should *work* here (conventions, don'ts) | `CLAUDE.md` (**private**, auto-loaded each session) |
 
 **Agent query pattern:** grep the index (STATE rows, lesson titles) → open only the one thesis doc or lesson you need.  
@@ -81,7 +81,7 @@ Thresholds err on the strict side. A premature reject costs a tombstone doc. A f
 
 ### Live (MT5 VPS)
 
-8 strict-PASS strategies + 1 watchlist-paper-deploy, all paper. Mix of intraday momentum/fade, scheduled-macro-event drift, structural / settlement-flow, and a tail-convex overlay — diversified across asset classes and mechanisms. Per-strategy specifics (instrument, thesis, params, sizing, EA) are private (`experiments/_live/`, `live_tracking/`, `deploy/`).
+9 live strategies, all paper. Mix of intraday momentum/fade, scheduled-macro-event drift, structural / settlement-flow, and a tail-convex overlay — diversified across asset classes and mechanisms. Per-strategy specifics (instrument, thesis, params, sizing, EA) are private (`experiments/_live/`, `live_tracking/`, `deploy/`).
 
 Aggregate book metrics (post-tz-fix, inv-vol audit — the book is the unit, not the legs):
 
@@ -99,11 +99,11 @@ Sizing tiers, validation gates, review cadence, and the honest fears list are in
 
 ### Validated but not deployed
 
-Two strategies cleared Phases 2-7 but are broker-blocked: **treasury_trend** (no US Treasury CFDs on the broker) and **softs_ensemble** (D1 history depth on broker too short for the 12M lookback). Both research traces are in `experiments/<name>/`.
+Three strategies cleared Phases 2-7 but are broker-blocked: **treasury_trend** (no US Treasury CFDs on the broker), **softs_ensemble** (D1 history depth on broker too short for the 12M lookback), and **pead_midcap** (CFD swap cost eats the edge). All research traces are in `experiments/<name>/`.
 
 ### Rejected
 
-82 tombstoned strategies with documented post-mortems. Full table in [`docs/STATE_GRAVEYARD.md`](docs/STATE_GRAVEYARD.md). The patterns that recur — sign-inversion on post-2022 US-index MR, CFD-vs-cash-equity cost gaps, regime-decay on factor strategies — are written up as numbered lessons in `docs/RESEARCH_NOTES.md` (private/local-only).
+92 tombstoned strategies with documented post-mortems. Full table in [`docs/STATE_GRAVEYARD.md`](docs/STATE_GRAVEYARD.md). The patterns that recur — sign-inversion on post-2022 US-index MR, CFD-vs-cash-equity cost gaps, regime-decay on factor strategies — are written up as numbered lessons in `docs/RESEARCH_NOTES.md` (private/local-only).
 
 ---
 
@@ -122,9 +122,9 @@ Broker asset access is wide: FX, index CFDs, single-stock CFDs, commodity CFDs, 
 ```
 alpha-graveyard/
 ├── experiments/             # One subdir per strategy (thesis .md + demo/validation .py)
-│   ├── <rejected>/               # ~30 tombstoned experiments — the public examples of the pipeline
+│   ├── <rejected>/               # ~90 tombstoned experiments — the public examples of the pipeline
 │   ├── treasury_trend/           # Validated Phases 2-7, broker-blocked
-│   ├── softs_ensemble/           # Validated Phases 2-6, broker-blocked
+│   ├── softs_ensemble/           # Validated Phases 2-7, broker-blocked
 │   └── _live/                    # Deployed strategies (private, gitignored)
 ├── scripts/                 # Data fetchers + shared helpers
 │   ├── mt5_fetch.py              # MT5 broker (FX, CFDs, indices, intraday)
@@ -132,6 +132,12 @@ alpha-graveyard/
 │   ├── tiingo_fetch.py           # Tiingo (US equities)
 │   ├── fred_fetch.py             # FRED (interest rates)
 │   └── _datalake.py              # Datalake client
+├── deploy/
+│   ├── mq5/
+│   │   ├── ea/          # Chart-attached EAs
+│   │   ├── services/    # Background services
+│   │   └── include/     # Shared MQL5 includes
+│   └── vps/             # Deployment scripts
 ├── ohlc_data/                # Local OHLC cache (gitignored)
 └── docs/
     ├── WORKFLOW.md               # The 8-phase pipeline definition
@@ -225,7 +231,7 @@ python scripts/fred_fetch.py
 
 ## Key lessons from the graveyard
 
-A short public selection. The full numbered list (87 lessons) is private (`docs/RESEARCH_NOTES.md`, local-only).
+A short public selection. The full numbered list (100 lessons) is private (`docs/RESEARCH_NOTES.md`, local-only).
 
 1. **Low correlation ≠ useful diversifier.** A strategy with correlation 0.1 and negative Sharpe subtracts from your book. Correlation alone doesn't justify inclusion; positive standalone Sharpe does.
 
@@ -260,6 +266,6 @@ A short public selection. The full numbered list (87 lessons) is private (`docs/
 ## Further reading
 
 - [`docs/STATE.md`](docs/STATE.md) — per-experiment verdicts + headline numbers. Start here.
-- `docs/RESEARCH_NOTES.md` — 87 cross-experiment lessons (**private/local-only**). Read before designing a new thesis.
+- `docs/RESEARCH_NOTES.md` — 100 cross-experiment lessons (**private/local-only**). Read before designing a new thesis.
 - [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — the 8-phase pipeline with kill thresholds.
 - `experiments/<name>/<name>.md` — strategy-specific thesis, validation, and tombstone.

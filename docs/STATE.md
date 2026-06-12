@@ -82,7 +82,7 @@ Lessons → [RESEARCH_NOTES.md](RESEARCH_NOTES.md). Rejects → [STATE_GRAVEYARD
 5. `_live/portfolio_risk_parity/portfolio_risk_parity_demo.py` — add `run_<name>()` + STRATS row; re-run audit → feeds BOOK_PLAN §2.1.
 6. BOOK_PLAN §1 row, §4 Gate-0 count, §2.1 numbers (from step 5), §2.2 live-target if moved.
 7. `live_tracking/<name>.md` — kill-trigger spec, starting balance, first-fire date.
-8. Private deploy: `deploy/mq5/<name>.mq5` (or `.../Services/`), magic registration, hedging + margin check.
+8. Private deploy: `deploy/mq5/ea/<name>.mq5` (or `deploy/mq5/services/<name>.mq5`), magic registration, hedging + margin check.
 9. Memory only if the deploy surfaces a new methodological rule.
 
 Cadence: the research-side audit (step 5) re-runs every graduation; the live-side sizing review stays quarterly per BOOK_PLAN §5.
